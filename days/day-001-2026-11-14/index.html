@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>第 1 天 · Python 从零开始 — Agent-learn</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: -apple-system, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", sans-serif; color: #1f2937; background: #f8fafc; line-height: 1.75; }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 24px 18px 64px; }
+  .top { background: #111827; color: #fff; border-radius: 16px; padding: 22px 24px; }
+  .top h1 { margin: 0 0 6px; font-size: 24px; }
+  .top p { margin: 3px 0; color: #d1d5db; }
+  .top .meta { color: #9ca3af; font-size: 14px; }
+  h2 { margin-top: 34px; font-size: 20px; border-left: 4px solid #2563eb; padding-left: 10px; }
+  h3 { margin-top: 24px; font-size: 17px; }
+  p { margin: 8px 0; }
+  a { color: #2563eb; }
+  pre { background: #111827; color: #e5e7eb; padding: 14px 16px; border-radius: 10px; overflow-x: auto; font-size: 14px; line-height: 1.6; }
+  pre .c { color: #9ca3af; }
+  code { background: #f3f4f6; padding: 1px 5px; border-radius: 4px; font-size: 14px; }
+  pre code { background: none; padding: 0; }
+  .note { background: #fffbeb; border: 1px solid #fde68a; border-radius: 12px; padding: 12px 16px; margin: 14px 0; }
+  .warn { background: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 12px 16px; margin: 14px 0; }
+  .good { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 12px 16px; margin: 14px 0; }
+  .quiz { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px 18px; margin: 14px 0; }
+  .quiz h3 { margin-top: 0; }
+  /* CSS-only reveal: works even when JS is blocked (QQ / WeChat in-app browsers) */
+  .reveal input { display: none; }
+  .reveal label { display: inline-block; background: #2563eb; color: #fff; border-radius: 8px; padding: 6px 14px; cursor: pointer; margin-top: 8px; }
+  .reveal .answer { display: none; margin-top: 10px; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 10px 12px; }
+  .reveal input:checked ~ .answer { display: block; }
+  .reveal input:checked ~ label { display: none; }
+  .check { list-style: none; padding: 0; }
+  .check li { background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 10px 14px; margin: 8px 0; }
+  .check input { width: 18px; height: 18px; vertical-align: -3px; margin-right: 8px; }
+  .nav { margin-top: 36px; display: flex; justify-content: space-between; }
+  .nav a { text-decoration: none; }
+  footer { margin-top: 36px; color: #6b7280; font-size: 14px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="top">
+  <h1>第 1 天 · Python 从零开始</h1>
+  <p>2026 年 11 月 14 日 · 星期六 · 第 1 天 · 阶段 0</p>
+  <p class="meta">标准版 30–60 分钟 · 保底版 10 分钟（只做“保底任务”那一节）</p>
+</div>
+
+<h2>今天要达到什么</h2>
+<p>做完今天，你要能做到三件事：第一，读一段只有十几行的 Python 代码，能逐行说出每一行在干什么；第二，知道怎么在命令行里把它跑起来；第三，报错了知道先看哪里。</p>
+<p>不用背语法，不用一次全记住。目标是“看得懂”，不是“写得出长篇大论”。以后 Agent 写出来的代码，你就是用今天这套本事去看它的。</p>
+
+<h2>1 · Python 在 Agent 的活里是干什么的</h2>
+<p>可以把 Python 想成 Agent 的“手”。大模型是脑子，只会动嘴；真正要发请求、读写文件、调 SolidWorks 的接口、循环跑很多次，靠的都是外面这层 Python 代码。</p>
+<p>你以前学过 C++，对比着记最省事：</p>
+<ul>
+  <li>C++ 要先声明类型、写分号、用大括号；Python 不用，大部分时候直接写就行。</li>
+  <li>C++ 写十行才能做的事，Python 常常三五行就够了。</li>
+  <li>Python 自带和现成的库特别多，调大模型 API、读文件、处理文字，都有人写好的轮子。</li>
+</ul>
+<p>所以学 Agent 不用先把 Python 学成专家，学到“能读懂 Agent 循环里那几十行”就够用了，后面用到什么再补什么。</p>
+
+<h2>2 · 第一行代码：print 和变量</h2>
+<pre><code>print("你好，Agent")
+<span class="c"># print 就是“把括号里的东西显示出来”</span>
+
+name = "小肥鱼"
+print(name)
+print("你好，" + name)</code></pre>
+<p>三点注意：</p>
+<ul>
+  <li><code>print(...)</code>：括号里放什么，就显示什么。引号里的叫字符串，就是一串文字。</li>
+  <li><code>name = "小肥鱼"</code>：这叫变量，给一段数据起个名字，之后用名字就能找到它。Python 不用提前声明它是什么类型，直接 <code>=</code> 就行。</li>
+  <li><code>"你好，" + name</code>：字符串之间用 <code>+</code> 可以拼起来，结果是 <code>你好，小肥鱼</code>。</li>
+</ul>
+<p>数字也一样，变量里可以放数字，而且数字能直接算：</p>
+<pre><code>age = 19
+print(age + 1)   <span class="c"># 显示 20</span></code></pre>
+
+<h2>3 · input：让程序等你输入一句话</h2>
+<pre><code>name = input("你叫什么名字？")
+print("你好，" + name)</code></pre>
+<p><code>input(...)</code> 会先显示括号里的提示，然后停下来等你打字、按回车，你打的内容就存进 <code>name</code> 这个变量。Agent 里很多“等用户说一句话”的地方，道理和这个是一样的。</p>
+<div class="warn"><b>容易错：</b><code>input</code> 拿到的永远是文字。哪怕你输入的是 <code>19</code>，它也是文字 <code>"19"</code>，不能直接拿去做加减。要算数，得先转成数字：<code>int("19")</code> 变成数字 19。</div>
+
+<h2>4 · if 判断：程序开始“做决定”</h2>
+<pre><code>age = 19
+
+if age &gt;= 18:
+    print("成年了")
+else:
+    print("未成年")</code></pre>
+<p>这段话翻译成中文就是：如果 age 大于等于 18，显示“成年了”，否则显示“未成年”。</p>
+<p>和 C++ 对比着记，只有一处最容易错：<strong>Python 没有大括号，靠缩进表示“哪些行属于这个 if”</strong>。冒号 <code>:</code> 后面、缩进四个空格的那一行，就是条件成立时才执行的。缩进一乱，程序的意思就变了，运行时还会直接报错。</p>
+<div class="note"><b>记一个口诀：</b>看到冒号就换行缩进；回到和 if 对齐的位置，就表示“这个判断结束了”。</div>
+
+<h2>5 · 循环：让电脑替你重复</h2>
+<p>Agent 干活经常要重复：一条一条处理、一遍一遍重试。循环就是干这个的。</p>
+<pre><code>for i in range(3):
+    print(i)
+
+<span class="c"># 显示：
+# 0
+# 1
+# 2</span></code></pre>
+<p><code>range(3)</code> 的意思是“0、1、2 这三个数”，所以循环跑三遍。注意它是从 0 开始的，不是 1。</p>
+<pre><code>count = 0
+while count &lt; 3:
+    print("第", count + 1, "次")
+    count = count + 1</code></pre>
+<p><code>while</code> 是“只要条件还成立，就一直跑”。上面这段同样跑三遍，但 <code>count = count + 1</code> 这一行不能漏——漏了条件永远成立，程序就停不下来了。这也是 Agent 里“循环停不下来”最常见的原因之一。</p>
+
+<h2>6 · 怎么在命令行里跑一个 .py 文件</h2>
+<p>把上面的代码存成一个文件，比如 <code>hello.py</code>（本页同目录里已经有一份，可以直接拿去跑）。然后：</p>
+<pre><code>cd 文件所在的文件夹
+python hello.py</code></pre>
+<p>如果你的电脑上 <code>python</code> 不认，试试 <code>python3 hello.py</code>。看到输出就说明跑通了。</p>
+<div class="good"><b>报错了先看最后一行。</b>Python 的报错信息很长，但真正有用的往往是最后一两行：它会告诉你是哪一行、出了什么错（比如缩进不对、名字写错了、括号没关上）。先读最后一行，再把报错原样贴给 Agent，比直接说“跑不起来”管用得多。</div>
+
+<h2>测一测：读代码小题</h2>
+<p>下面四道题不用写代码，只要读，然后想一想会显示什么。点“显示答案”对一下。</p>
+
+<div class="quiz">
+  <h3>第 1 题</h3>
+  <pre><code>print(1 + 2)
+print("1" + "2")</code></pre>
+  <p>这两行分别会显示什么？为什么不一样？</p>
+  <div class="reveal">
+    <input type="checkbox" id="q1">
+    <label for="q1">显示答案</label>
+    <div class="answer">第一行显示 <code>3</code>，因为 1 和 2 是数字，<code>+</code> 是加法。第二行显示 <code>12</code>，因为带引号的 <code>"1"</code> 和 <code>"2"</code> 是文字，<code>+</code> 是拼接。同一符号，用在数字和文字上意思不一样。</div>
+  </div>
+</div>
+
+<div class="quiz">
+  <h3>第 2 题</h3>
+  <pre><code>name = "小肥鱼"
+print("你好，" + name)</code></pre>
+  <p>会显示什么？</p>
+  <div class="reveal">
+    <input type="checkbox" id="q2">
+    <label for="q2">显示答案</label>
+    <div class="answer">显示 <code>你好，小肥鱼</code>。先把 <code>"小肥鱼"</code> 存进变量 <code>name</code>，再把它拼到 <code>"你好，"</code> 后面。</div>
+  </div>
+</div>
+
+<div class="quiz">
+  <h3>第 3 题</h3>
+  <pre><code>age = 16
+if age &gt;= 18:
+    print("成年了")
+else:
+    print("未成年")</code></pre>
+  <p>会显示什么？如果把 16 改成 20 呢？</p>
+  <div class="reveal">
+    <input type="checkbox" id="q3">
+    <label for="q3">显示答案</label>
+    <div class="answer">显示 <code>未成年</code>，因为 16 不满足 <code>&gt;= 18</code>，所以走 <code>else</code> 那一行。改成 20 就满足条件，显示 <code>成年了</code>。</div>
+  </div>
+</div>
+
+<div class="quiz">
+  <h3>第 4 题</h3>
+  <pre><code>for i in range(3):
+    print(i)</code></pre>
+  <p>会显示哪几个数字？一共显示几行？</p>
+  <div class="reveal">
+    <input type="checkbox" id="q4">
+    <label for="q4">显示答案</label>
+    <div class="answer">显示 0、1、2，一共三行。<code>range(3)</code> 从 0 开始，到 2 结束。</div>
+  </div>
+</div>
+
+<h2>自查：今天算过关吗</h2>
+<p>下面每一项，能做到就打个勾（打勾只保存在你自己的浏览器里，不会上传到任何地方）。三项都打勾，今天就算过关。</p>
+<ul class="check" id="checklist">
+  <li><label><input type="checkbox"> 我能逐行说出第 2–5 节每段代码在干什么</label></li>
+  <li><label><input type="checkbox"> 我在命令行里跑通了 hello.py，看到了它打印出来的字</label></li>
+  <li><label><input type="checkbox"> 我知道报错了先看最后一行，再把报错贴给 Agent</label></li>
+</ul>
+<p id="progress">已完成 0 / 3</p>
+
+<h2>保底任务（10 分钟，没空就只做这个）</h2>
+<p>只做两件事：打开本页第 2 节，把 <code>print("你好，Agent")</code> 和变量那几行抄进 <code>hello.py</code>；在命令行里跑一次，看到输出。跑通了，今天就算没白学。</p>
+
+<h2>防屎山提醒</h2>
+<p>今天只改 <code>hello.py</code> 这一个文件，别同时开好几个文件一起改。一次只改一小步，跑通了再改下一步——以后 Agent 写代码，也按这个节奏管它。</p>
+
+<h2>明天预告</h2>
+<p>继续阶段 0：把 Python 最常用的几个结构补齐——列表、字典和函数。目标不变：还是“读得懂”，为后面亲手调 API 做准备。</p>
+
+<div class="nav">
+  <a href="../../index.html">← 回到首页</a>
+  <span>第 1 天 · 阶段 0</span>
+</div>
+
+<footer>
+  <p>原创学习笔记 · Agent-learn · 2026-11-14</p>
+</footer>
+
+</div>
+<script>
+// 增强功能：统计自查打勾数。JS 被拦截时页面照常可用，只是没有计数。
+(function () {
+  var boxes = document.querySelectorAll('#checklist input[type=checkbox]');
+  var text = document.getElementById('progress');
+  function update() {
+    var n = 0;
+    boxes.forEach(function (b) { if (b.checked) n++; });
+    text.textContent = '已完成 ' + n + ' / ' + boxes.length + (n === boxes.length ? ' · 今天过关！' : '');
+  }
+  boxes.forEach(function (b) { b.addEventListener('change', update); });
+  update();
+})();
+</script>
+</body>
+</html>

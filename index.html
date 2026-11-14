@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agent-learn · AI Agent 自学笔记</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: -apple-system, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", sans-serif; color: #1f2937; background: #f8fafc; line-height: 1.7; }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 24px 18px 64px; }
+  header { background: #111827; color: #fff; border-radius: 16px; padding: 28px 24px; }
+  header h1 { margin: 0 0 6px; font-size: 28px; }
+  header p { margin: 4px 0; color: #d1d5db; }
+  header .meta { color: #9ca3af; font-size: 14px; }
+  h2 { margin-top: 36px; font-size: 21px; border-left: 4px solid #2563eb; padding-left: 10px; }
+  .card { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px 18px; margin: 12px 0; }
+  .card h3 { margin: 0 0 4px; font-size: 17px; }
+  .card p { margin: 4px 0; color: #4b5563; }
+  .tag { display: inline-block; font-size: 12px; background: #dbeafe; color: #1d4ed8; border-radius: 999px; padding: 1px 9px; margin-right: 6px; }
+  .tag.done { background: #dcfce7; color: #166534; }
+  .tag.now { background: #fef3c7; color: #92400e; }
+  .tag.later { background: #f3f4f6; color: #6b7280; }
+  a { color: #2563eb; }
+  .btn { display: inline-block; background: #2563eb; color: #fff; text-decoration: none; border-radius: 8px; padding: 8px 16px; margin-top: 8px; }
+  table { width: 100%; border-collapse: collapse; background: #fff; font-size: 15px; }
+  th, td { border: 1px solid #e5e7eb; padding: 8px 10px; text-align: left; }
+  th { background: #f3f4f6; }
+  .note { background: #fffbeb; border: 1px solid #fde68a; border-radius: 12px; padding: 14px 16px; }
+  code { background: #f3f4f6; padding: 1px 5px; border-radius: 4px; font-size: 14px; }
+  footer { margin-top: 40px; color: #6b7280; font-size: 14px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>Agent-learn</h1>
+  <p>从零自学 AI Agent 的学习笔记：目标是做出能帮机械 / 工程软件干活的 Agent。</p>
+  <p class="meta">开始于 2026 年 11 月 14 日（星期六）· 每天 30–60 分钟，累了就 10 分钟保底 · 周日休息 · 错过不补</p>
+</header>
+
+<h2>怎么用这个仓库</h2>
+<div class="note">
+  <p>每天一个文件夹：<code>days/day-001-2026-11-14/</code> 这样的名字里就带了日期。每天只做当天那一页里的事，做完就算完成，不用一次追好几天的进度。</p>
+  <p>打开方式：直接用浏览器打开 <code>index.html</code>，或者在 GitHub 上点开对应文件夹里的 <code>index.html</code> 看渲染效果。所有页面都是纯静态的，不用装任何东西，也不用联网。</p>
+</div>
+
+<h2>六个阶段</h2>
+
+<div class="card">
+  <h3><span class="tag now">进行中</span>阶段 0 · 捡回 Python 和命令行手感</h3>
+  <p>目标：能读懂一段短短的 Python 代码，知道每一行在干什么，并能在命令行里把它跑起来。不是要背语法，是要建立“我能看懂、能改一小段”的手感。</p>
+</div>
+
+<div class="card">
+  <h3><span class="tag later">未开始</span>阶段 1 · 亲手调通一次大模型 API</h3>
+  <p>目标：自己写一段代码，把一句话发给大模型，再把回答打印出来。弄明白 API 地址、密钥、输入、输出这四个东西分别放在哪里。</p>
+</div>
+
+<div class="card">
+  <h3><span class="tag later">未开始</span>阶段 2 · 手写工具调用和 Agent 循环（先不用框架）</h3>
+  <p>目标：不靠任何框架，自己写出“想一想 → 决定用什么工具 → 执行 → 看结果 → 再想一想”这个循环。理解了这个，再看任何 Agent 框架都知道它在干什么。</p>
+</div>
+
+<div class="card">
+  <h3><span class="tag later">未开始</span>阶段 3 · Git 五条命令 + 读报错 + 防屎山手艺</h3>
+  <p>目标：只记五条最常用的 Git 命令；报错先看最后一行，再决定怎么办；每次只改一小步、随时能回滚，不再攒出屎山代码。</p>
+</div>
+
+<div class="card">
+  <h3><span class="tag later">未开始</span>阶段 4 · 补 SolidWorks 操作与 API，让迷你 Agent 驱动建模</h3>
+  <p>目标：先把 SolidWorks 的基本操作补到和 CAXA 差不多的水平，再让一个迷你 Agent 通过 API 驱动它做一次简单建模。</p>
+</div>
+
+<div class="card">
+  <h3><span class="tag later">未开始</span>阶段 5 · 长期目标：内置 MCP / skill 的工程 Agent 框架</h3>
+  <p>目标：做一个专门为工程软件准备的 Agent 框架，常用的 MCP 和 skill 内置好，不用用户自己一个个装，并朝着更懂工程问题的方向慢慢打磨。</p>
+</div>
+
+<h2>学习日志</h2>
+<table>
+  <tr><th>天数</th><th>日期</th><th>阶段</th><th>内容</th><th>状态</th></tr>
+  <tr>
+    <td>Day 1</td>
+    <td>2026-11-14（星期六）</td>
+    <td>阶段 0</td>
+    <td><a href="days/day-001-2026-11-14/index.html">Python 从零开始：print、变量、if、循环，怎么跑起来</a></td>
+    <td>已完成内容，待学习</td>
+  </tr>
+</table>
+<p><a class="btn" href="days/day-001-2026-11-14/index.html">开始第 1 天 →</a></p>
+
+<footer>
+  <p>本站内容为原创学习笔记，用自己的话讲清楚每一个概念，不照抄书和课程。遇到问题先自己试，再去问 Agent——试的过程本身就是学习。</p>
+</footer>
+
+</div>
+</body>
+</html>
