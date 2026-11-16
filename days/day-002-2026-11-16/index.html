@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>第 2 天 · 用 print() 当探照灯 — Agent-learn</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: -apple-system, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", sans-serif; color: #1f2937; background: #f8fafc; line-height: 1.75; }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 24px 18px 64px; }
+  .top { background: #111827; color: #fff; border-radius: 16px; padding: 22px 24px; }
+  .top h1 { margin: 0 0 6px; font-size: 24px; }
+  .top p { margin: 3px 0; color: #d1d5db; }
+  .top .meta { color: #9ca3af; font-size: 14px; }
+  h2 { margin-top: 34px; font-size: 20px; border-left: 4px solid #2563eb; padding-left: 10px; }
+  h3 { margin-top: 24px; font-size: 17px; }
+  p { margin: 8px 0; }
+  a { color: #2563eb; }
+  pre { background: #111827; color: #e5e7eb; padding: 14px 16px; border-radius: 10px; overflow-x: auto; font-size: 14px; line-height: 1.6; }
+  pre .c { color: #9ca3af; }
+  code { background: #f3f4f6; padding: 1px 5px; border-radius: 4px; font-size: 14px; }
+  pre code { background: none; padding: 0; }
+  .note { background: #fffbeb; border: 1px solid #fde68a; border-radius: 12px; padding: 12px 16px; margin: 14px 0; }
+  .warn { background: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 12px 16px; margin: 14px 0; }
+  .good { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 12px 16px; margin: 14px 0; }
+  .quiz { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px 18px; margin: 14px 0; }
+  .quiz h3 { margin-top: 0; }
+  /* CSS-only reveal: works even when JS is blocked (QQ / WeChat in-app browsers) */
+  .reveal input { display: none; }
+  .reveal label { display: inline-block; background: #2563eb; color: #fff; border-radius: 8px; padding: 6px 14px; cursor: pointer; margin-top: 8px; }
+  .reveal .answer { display: none; margin-top: 10px; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 10px 12px; }
+  .reveal input:checked ~ .answer { display: block; }
+  .reveal input:checked ~ label { display: none; }
+  .check { list-style: none; padding: 0; }
+  .check li { background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 10px 14px; margin: 8px 0; }
+  .check input { width: 18px; height: 18px; vertical-align: -3px; margin-right: 8px; }
+  .nav { margin-top: 36px; display: flex; justify-content: space-between; }
+  .nav a { text-decoration: none; }
+  footer { margin-top: 36px; color: #6b7280; font-size: 14px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="top">
+  <h1>第 2 天 · 用 print() 当探照灯</h1>
+  <p>2026 年 11 月 16 日 · 星期一 · 第 2 天 · 阶段 0</p>
+  <p class="meta">标准版 30–60 分钟 · 保底版 10 分钟（只做“保底任务”那一节）</p>
+</div>
+
+<h2>今天要达到什么</h2>
+<p>做完今天，你要能做到三件事：第一，给 <code>print</code> 加上标签，一眼分清每个数字是谁；第二，在循环和函数里面插 <code>print</code>，看到程序每一步走到哪、每个值变成了什么；第三，凭 <code>print</code> 的输出，定位 bug 大概在第几行附近。</p>
+<p>目标还是“看得懂”：你不是在学写复杂的程序，你是在学“程序不对劲时，怎么快速找到它错在哪”。以后 Agent 写出来的代码跑偏了，你就是用今天这套本事去指哪修哪的。</p>
+
+<h2>1 · 为什么 Agent 干活也靠 print</h2>
+<p>模型写代码也会错，而且错得越像真的越难发现。最快的定位办法，不是把几十行代码从头读到尾，而是在关键的地方打印中间结果，看哪一步开始不对。</p>
+<p>Agent 自己干活也是这个循环：调一个工具，拿到返回结果，先看一眼返回了什么，再决定下一步。你今天练的，就是这个“先看一眼”的动作，只不过看的工具是 <code>print</code>。</p>
+
+<h2>2 · print 的三种常用写法</h2>
+<p>第一种，直接打印一个值：</p>
+<pre><code>count = 3
+print(count)   <span class="c"># 显示 3</span></code></pre>
+<p>第二种，前面加个标签，说明这个数是谁——调试时最常用，因为光秃秃一个数字根本分不清：</p>
+<pre><code>count = 3
+print("count =", count)   <span class="c"># 显示 count = 3</span></code></pre>
+<p>第三种，用 f 字符串把变量直接嵌进一句话里（字母 <code>f</code> 写在引号前面，大括号里放变量名）：</p>
+<pre><code>count = 3
+print(f"第 1 次，count = {count}")   <span class="c"># 显示 第 1 次，count = 3</span></code></pre>
+<p>三点注意：</p>
+<ul>
+  <li><code>print("a", 1 + 2)</code>：逗号隔开的几样东西会依次显示，中间自动空一格，结果是 <code>a 3</code>。</li>
+  <li>标签要写清楚变量名，比如 <code>"total ="</code>，别只写 <code>"结果："</code>——两个结果一多，又分不清了。</li>
+  <li><code>print</code> 只能帮你“看”，改不了程序的逻辑。看到错的地方，还是要回去改代码。</li>
+</ul>
+
+<h2>3 · 先补两个结构：列表和函数</h2>
+<p>第 1 天预告过，今天把 Python 最常用的两个结构补齐，只补到“能读懂”的程度。</p>
+<p><b>列表（list）：</b>一串排好队的数据，用方括号装起来：</p>
+<pre><code>scores = [78, 92, 85]
+print(scores[0])   <span class="c"># 显示 78，编号从 0 开始</span>
+print(len(scores)) <span class="c"># 显示 3，len 就是“有几个”</span>
+
+for s in scores:
+    print(s)       <span class="c"># 依次显示 78、92、85</span></code></pre>
+<p><b>字典（dict）：</b>一对一对的数据，用大括号装起来，前面是名字、后面是值：</p>
+<pre><code>student = {"name": "小肥鱼", "score": 92}
+print(student["score"])   <span class="c"># 显示 92，用名字取对应的值</span></code></pre>
+<p><b>函数（def）：</b>把几行代码打包起个名字，以后叫名字就能重复用。<code>return</code> 是“把结果交还给调用它的地方”：</p>
+<pre><code>def double(x):
+    return x * 2
+
+print(double(3))   <span class="c"># 显示 6</span></code></pre>
+<div class="note"><b>读代码的顺序：</b>先看函数是干嘛的（名字 + return 那一行），再看它里面每一步。看不懂某一行时，先把它当成一个黑盒子：知道进去什么、出来什么，就够了。</div>
+
+<h2>4 · 实战：一个算平均分的 bug</h2>
+<p>下面这个函数要算三个分数的平均分，但结果是错的。先读一遍，想想错在哪，再往下看怎么用 <code>print</code> 抓住它（完整代码也在本页同目录的 <code>debug_print.py</code> 里，可以直接跑）。</p>
+<pre><code>def average(scores):
+    total = 0
+    for s in scores:
+        total = s          <span class="c"># &lt;-- 有问题的一行</span>
+    return total / len(scores)
+
+scores = [78, 92, 85]
+print("平均分是", average(scores))</code></pre>
+<p>跑出来的结果是 <code>平均分是 28.333333333333332</code>，明显不对——三个 80 多分的平均分不可能是 28 分。</p>
+<p>问题出在 <code>total = s</code> 这一行：它不是“累加”，而是“每次都把 total 换成当前这一个分数”。循环跑完三轮，<code>total</code> 只剩最后一个分数 85，<code>85 / 3</code> 就是 28.33。正确的写法是 <code>total = total + s</code>，每一轮都把新分数加到原来的总数上。</p>
+<p>如果光看代码没看出来，就在循环里插两个 <code>print</code>，看每一步的值：</p>
+<pre><code>def average(scores):
+    total = 0
+    for s in scores:
+        print("这一轮 s =", s, "加之前 total =", total)
+        total = total + s
+        print("加之后 total =", total)
+    return total / len(scores)</code></pre>
+<p>输出是这样的：</p>
+<pre><code>这一轮 s = 78 加之前 total = 0
+加之后 total = 78
+这一轮 s = 92 加之前 total = 78
+加之后 total = 170
+这一轮 s = 85 加之前 total = 170
+加之后 total = 255
+平均分是 85.0</code></pre>
+<p>这就是“探照灯”的意思：每一步的值都照出来了，哪一步开始不对，一眼就能看到。如果用错的那个版本跑，你会在第一轮就看到“加之后 total = 78”，第二轮“加之前 total”明明应该是 78 却变成了 92——错的那一行就在这两行 <code>print</code> 中间。</p>
+
+<h2>5 · 定位技巧：前后各插一个 print</h2>
+<p>不知道 bug 在哪时，不用满屏插 <code>print</code>，用这个办法：</p>
+<ul>
+  <li>在你怀疑的那段代码<b>前面</b>插一个 <code>print("到这里了")</code>，<b>后面</b>再插一个。</li>
+  <li>两个都出来了，说明这段跑完了，bug 在更后面；只出来前面那个，说明程序死在了中间这一段，范围就缩到这几行了。</li>
+  <li>再把这个办法往中间推一次，范围越缩越小，直到只剩两三行。</li>
+</ul>
+<div class="warn"><b>容易错：</b><code>print</code> 插太多会刷屏，反而看不清。一次只留两三个关键位置的，找到就删掉，或者改成只在不对劲时才打印。Agent 写代码也一样：日志打得到处都是，等于没打。</div>
+
+<h2>6 · 和报错配合着用</h2>
+<p>第 1 天说的“报错先看最后一行”，和今天的 <code>print</code> 是一对：报错告诉你程序在第几行停下，<code>print</code> 告诉你停下之前每个值是什么。</p>
+<p>比如程序在第 5 行报错了，第 5 行前面的 <code>print</code> 都出来了、后面的都没出来，那问题就在第 5 行附近——先看那一行的变量，用 <code>print</code> 把它们打出来，对照着报错最后一行说的原因，基本就能对上号。</p>
+
+<h2>测一测：读代码小题</h2>
+<p>下面四道题不用写代码，只要读，然后想一想会显示什么。点“显示答案”对一下。</p>
+
+<div class="quiz">
+  <h3>第 1 题</h3>
+  <pre><code>print("a", 1 + 2)</code></pre>
+  <p>会显示什么？逗号起什么作用？</p>
+  <div class="reveal">
+    <input type="checkbox" id="q1">
+    <label for="q1">显示答案</label>
+    <div class="answer">显示 <code>a 3</code>。逗号隔开的几样东西会依次显示，中间自动空一格；<code>1 + 2</code> 先算出 3 再显示。</div>
+  </div>
+</div>
+
+<div class="quiz">
+  <h3>第 2 题</h3>
+  <pre><code>name = "小肥鱼"
+print(f"你好，{name}")</code></pre>
+  <p>会显示什么？大括号是干嘛的？</p>
+  <div class="reveal">
+    <input type="checkbox" id="q2">
+    <label for="q2">显示答案</label>
+    <div class="answer">显示 <code>你好，小肥鱼</code>。引号前面的 <code>f</code> 表示这是 f 字符串，大括号里的变量会被换成它真正的值。</div>
+  </div>
+</div>
+
+<div class="quiz">
+  <h3>第 3 题</h3>
+  <pre><code>total = 0
+for s in [78, 92, 85]:
+    total = s
+print(total)</code></pre>
+  <p>最后显示几？为什么不是 255？</p>
+  <div class="reveal">
+    <input type="checkbox" id="q3">
+    <label for="q3">显示答案</label>
+    <div class="answer">显示 <code>85</code>。因为 <code>total = s</code> 是“换成”，不是“加上”：三轮下来 total 依次变成 78、92、85，只剩最后一个。要累加得写 <code>total = total + s</code>，结果才是 255。</div>
+  </div>
+</div>
+
+<div class="quiz">
+  <h3>第 4 题</h3>
+  <pre><code>print("第一步到了")
+x = 1 / 0
+print("第二步到了")</code></pre>
+  <p>会显示什么？“第二步到了”会出现吗？这能告诉你什么？</p>
+  <div class="reveal">
+    <input type="checkbox" id="q4">
+    <label for="q4">显示答案</label>
+    <div class="answer">只显示 <code>第一步到了</code>，然后程序在 <code>1 / 0</code> 那行报错停下，“第二步到了”不会出现。这就告诉你：问题在第一步和第二步之间——前后各插一个 print，出来几个、卡在哪，范围就缩到那几行了。</div>
+  </div>
+</div>
+
+<h2>自查：今天算过关吗</h2>
+<p>下面每一项，能做到就打个勾（打勾只保存在你自己的浏览器里，不会上传到任何地方）。三项都打勾，今天就算过关。</p>
+<ul class="check" id="checklist">
+  <li><label><input type="checkbox"> 我能给 print 加标签，分清每个打印出来的值是谁</label></li>
+  <li><label><input type="checkbox"> 我能用循环里插 print 的办法，找到 total 算错的那一步</label></li>
+  <li><label><input type="checkbox"> 我知道程序跑一半停了时，用前后两个 print 把范围缩到几行</label></li>
+</ul>
+<p id="progress">已完成 0 / 3</p>
+
+<h2>保底任务（10 分钟，没空就只做这个）</h2>
+<p>只做两件事：把本页同目录的 <code>debug_print.py</code> 在命令行里跑一遍，看它打印的每一步；再把里面 <code>total = s</code> 改成 <code>total = total + s</code>，再跑一遍，对比两次输出哪里不一样。跑通、看出差别，今天就算没白学。</p>
+
+<h2>防屎山提醒</h2>
+<p>一次只改一行，改完跑一次，看到输出再改下一处。不要同时改三处再跑——错了都不知道是谁的锅。第 1 天的 <code>hello.py</code> 别动，今天只玩 <code>debug_print.py</code> 这一个文件。</p>
+
+<h2>明天预告</h2>
+<p>继续阶段 0，任务 3：文件读写——打开一个 txt / json 文件，读出来、改一点、再存回去。Agent 要读写文件、记笔记、存进度，靠的都是这一手。</p>
+
+<div class="nav">
+  <a href="../../index.html">← 回到首页</a>
+  <span>第 2 天 · 阶段 0</span>
+</div>
+
+<footer>
+  <p>原创学习笔记 · Agent-learn · 2026-11-16</p>
+</footer>
+
+</div>
+<script>
+// 增强功能：统计自查打勾数。JS 被拦截时页面照常可用，只是没有计数。
+(function () {
+  var boxes = document.querySelectorAll('#checklist input[type=checkbox]');
+  var text = document.getElementById('progress');
+  function update() {
+    var n = 0;
+    boxes.forEach(function (b) { if (b.checked) n++; });
+    text.textContent = '已完成 ' + n + ' / ' + boxes.length + (n === boxes.length ? ' · 今天过关！' : '');
+  }
+  boxes.forEach(function (b) { b.addEventListener('change', update); });
+  update();
+})();
+</script>
+</body>
+</html>
