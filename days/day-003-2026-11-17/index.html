@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>第 3 天 · 文件读写：让程序记住东西 — Agent-learn</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: -apple-system, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", sans-serif; color: #1f2937; background: #f8fafc; line-height: 1.75; }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 24px 18px 64px; }
+  .top { background: #111827; color: #fff; border-radius: 16px; padding: 22px 24px; }
+  .top h1 { margin: 0 0 6px; font-size: 24px; }
+  .top p { margin: 3px 0; color: #d1d5db; }
+  .top .meta { color: #9ca3af; font-size: 14px; }
+  h2 { margin-top: 34px; font-size: 20px; border-left: 4px solid #2563eb; padding-left: 10px; }
+  h3 { margin-top: 24px; font-size: 17px; }
+  p { margin: 8px 0; }
+  a { color: #2563eb; }
+  pre { background: #111827; color: #e5e7eb; padding: 14px 16px; border-radius: 10px; overflow-x: auto; font-size: 14px; line-height: 1.6; }
+  pre .c { color: #9ca3af; }
+  code { background: #f3f4f6; padding: 1px 5px; border-radius: 4px; font-size: 14px; }
+  pre code { background: none; padding: 0; }
+  .note { background: #fffbeb; border: 1px solid #fde68a; border-radius: 12px; padding: 12px 16px; margin: 14px 0; }
+  .warn { background: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 12px 16px; margin: 14px 0; }
+  .good { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 12px 16px; margin: 14px 0; }
+  .quiz { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px 18px; margin: 14px 0; }
+  .quiz h3 { margin-top: 0; }
+  /* CSS-only reveal: works even when JS is blocked (QQ / WeChat in-app browsers) */
+  .reveal input { display: none; }
+  .reveal label { display: inline-block; background: #2563eb; color: #fff; border-radius: 8px; padding: 6px 14px; cursor: pointer; margin-top: 8px; }
+  .reveal .answer { display: none; margin-top: 10px; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 10px 12px; }
+  .reveal input:checked ~ .answer { display: block; }
+  .reveal input:checked ~ label { display: none; }
+  .check { list-style: none; padding: 0; }
+  .check li { background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 10px 14px; margin: 8px 0; }
+  .check input { width: 18px; height: 18px; vertical-align: -3px; margin-right: 8px; }
+  .nav { margin-top: 36px; display: flex; justify-content: space-between; }
+  .nav a { text-decoration: none; }
+  footer { margin-top: 36px; color: #6b7280; font-size: 14px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="top">
+  <h1>第 3 天 · 文件读写：让程序记住东西</h1>
+  <p>2026 年 11 月 17 日 · 星期二 · 第 3 天 · 阶段 0</p>
+  <p class="meta">标准版 30–60 分钟 · 保底版 10 分钟（只做“保底任务”那一节）</p>
+</div>
+
+<h2>今天要达到什么</h2>
+<p>做完今天，你要能做到三件事：第一，打开一个 txt 文件，把里面的字读出来；第二，往文件里写一句话，再读回来确认写进去了；第三，读一个 json 文件，改里面一个值，再存回去——文件里的值真的变了。</p>
+<p>目标还是“看得懂 + 改得动”：你不是在学文件操作大全，你是在学 Agent 最常用的一手本事。Agent 要读配置、记笔记、存进度、把结果写下来，靠的都是今天这套东西。</p>
+
+<h2>1 · 为什么 Agent 必须会读写文件</h2>
+<p>前两天学的 print 只能“看”，程序一关，看到的东西就没了。文件不一样：写进去的东西，程序关了还在，下次打开还能接着用。</p>
+<p>Agent 干活也是这个道理：它今天查到的东西，要记到文件里，明天才能接着用；你要它改的配置，改完要存回文件里，下次启动才生效。不会读写文件，Agent 就只能是个“金鱼脑”，每次从头开始。</p>
+<p>今天只学两种文件：<code>txt</code>（纯文字，像记事本）和 <code>json</code>（长得像 Python 字典，专门用来存结构化的数据，比如名字和分数）。够用了，先别碰别的格式。</p>
+
+<h2>2 · 读文件：open + with，记得写 encoding</h2>
+<p>读文件固定是三步：打开、读、关掉。Python 里最常用的写法是 <code>with open(...)</code>，它会帮你自动关文件，不用你自己记着关：</p>
+<pre><code>with open("notes.txt", "r", encoding="utf-8") as f:
+    text = f.read()
+    print(text)</code></pre>
+<p>这行代码一个一个拆开看：</p>
+<ul>
+  <li><code>open("notes.txt", "r", ...)</code>：打开这个文件。第二个位置的 <code>"r"</code> 是 read（读）的意思，只读不写。</li>
+  <li><code>encoding="utf-8"</code>：告诉 Python 文件里是中文，用 utf-8 来解。没有这一句，中文很可能读出来是乱码——这行是写中文文件时最容易漏的。</li>
+  <li><code>as f</code>：给打开的文件起个短名字 <code>f</code>，后面就用它来读。</li>
+  <li><code>f.read()</code>：把文件里的全部内容一次读出来，变成一个字符串。</li>
+  <li><code>with</code>：这一行最贴心——缩进里的代码跑完，它自动帮你把文件关掉，你不用再写 <code>f.close()</code>。</li>
+</ul>
+<div class="note"><b>不用 with 会怎样？</b>也可以写成 <code>f = open(...)</code> 再 <code>f.read()</code>，但你得自己记得在最后写 <code>f.close()</code>。小脚本跑完就退出，忘了关也没大事；但程序一直跑着、文件一直开着，后面再想写这个文件就可能被占住、写不进去。所以养成习惯：打开文件就用 <code>with</code>。</div>
+
+<h2>3 · 写文件：w 会清空，a 是往后追加</h2>
+<p>写文件和读文件是同一个 <code>open</code>，差别只在第二个位置那个字母：</p>
+<pre><code>with open("notes.txt", "w", encoding="utf-8") as f:
+    f.write("第 3 天：文件读写\n")</code></pre>
+<ul>
+  <li><code>"w"</code> 是 write（写）：打开就先把文件里的旧内容全部清空，再写新的。文件原来有三行字，写完就只剩你刚写这一行了。</li>
+  <li><code>"a"</code> 是 append（追加）：不清空，在文件末尾接着写，旧内容都留着。记日记、记日志都用它。</li>
+  <li><code>write()</code> 不会自动换行：想换行，自己在字符串末尾加 <code>\n</code>。忘了加，两句话会挤在同一行。</li>
+</ul>
+<div class="warn"><b>最容易翻车的一点：</b>想追加却用了 <code>"w"</code>，旧内容一下全没了，找不回来。用 <code>"w"</code> 之前，先问自己一句：这个文件里的旧东西，还要不要？不确定就先复制一份备份再写。</div>
+
+<h2>4 · 实战：学习打卡本 + 改一个分数</h2>
+<p>下面这个练习一次把读、写、json 全串起来了（完整代码也在本页同目录的 <code>file_io.py</code> 里，可以直接跑）。</p>
+<p>先写一个 txt 打卡本，再读回来确认：</p>
+<pre><code>with open("notes.txt", "w", encoding="utf-8") as f:
+    f.write("第 3 天：文件读写\n")
+    f.write("今天学会了 open、read、write，还有 json 的 load 和 dump。\n")
+
+with open("notes.txt", "r", encoding="utf-8") as f:
+    print(f.read())</code></pre>
+<p>输出是这样的：</p>
+<pre><code>第 3 天：文件读写
+今天学会了 open、read、write，还有 json 的 load 和 dump。</code></pre>
+<p>再用 json 存三个人的分数。json 长得和 Python 的字典一模一样，<code>json.dump</code> 是“把字典存进文件”，<code>json.load</code> 是“把文件读成字典”：</p>
+<pre><code>import json
+
+scores = {"小肥鱼": 92, "小明": 78, "小红": 85}
+with open("scores.json", "w", encoding="utf-8") as f:
+    json.dump(scores, f, ensure_ascii=False, indent=2)</code></pre>
+<p><code>ensure_ascii=False</code> 是让中文直接存成中文，不写它，名字会变成 <code>"\u5c0f\u80a5\u9c7c"</code> 这种看不懂的编码；<code>indent=2</code> 是让文件排版好看一点，带缩进、能换行，不写它，所有内容会挤在一行。</p>
+<p>改分数要走“读出来 → 改内存里的值 → 再写回去”三步，缺一步都不行：</p>
+<pre><code>with open("scores.json", "r", encoding="utf-8") as f:
+    data = json.load(f)
+print("改之前", data)   <span class="c"># {'小肥鱼': 92, '小明': 78, '小红': 85}</span>
+
+data["小明"] = 88       <span class="c"># 只改内存里的字典，文件还没变</span>
+
+with open("scores.json", "w", encoding="utf-8") as f:
+    json.dump(data, f, ensure_ascii=False, indent=2)   <span class="c"># 写回去，文件才真的变了</span></code></pre>
+<p>跑完再读一次，确认文件里的分数真的变成 88 了。完整的四步输出都在 <code>file_io.py</code> 里，跑一遍就能看到。</p>
+
+<h2>5 · 容易踩的四个坑</h2>
+<ul>
+  <li><b>文件不存在：</b>读一个还没建好的文件会报错 <code>FileNotFoundError</code>。先写一个再读，或者先确认文件名没打错。</li>
+  <li><b>路径是相对“你在哪里运行”，不是文件在哪里：</b>在命令行里跑 <code>python file_io.py</code>，<code>open("notes.txt")</code> 找的是你当前所在的文件夹，不是 <code>file_io.py</code> 所在的文件夹。所以跑之前先 <code>cd</code> 到 <code>file_io.py</code> 那个文件夹里。</li>
+  <li><b>用了 "w" 却想追加：</b>旧内容被清空了，见第 3 节。想留旧内容就用 <code>"a"</code>。</li>
+  <li><b>改了内存里的值，忘了写回去：</b><code>data["小明"] = 88</code> 只改了内存里的字典，文件里的分数还是 78。必须再 <code>open</code> 一次用 <code>"w"</code> 写回去，文件才真的变了。</li>
+</ul>
+
+<h2>测一测：读代码小题</h2>
+<p>下面四道题不用写代码，只要读，然后想一想会发生什么。点“显示答案”对一下。</p>
+
+<div class="quiz">
+  <h3>第 1 题</h3>
+  <pre><code>f = open("notes.txt", "r", encoding="utf-8")
+print(f.read())</code></pre>
+  <p>跑完之后，这个文件关了吗？会有什么问题？</p>
+  <div class="reveal">
+    <input type="checkbox" id="q1">
+    <label for="q1">显示答案</label>
+    <div class="answer">没有关——代码里没写 <code>f.close()</code>。小脚本跑完就退出，系统会顺手关掉，没大事；但程序一直跑着、文件一直开着，后面再想写这个文件就可能被占住、写不进去。所以打开文件就用 <code>with</code>，让它自动帮你关。</div>
+  </div>
+</div>
+
+<div class="quiz">
+  <h3>第 2 题</h3>
+  <pre><code>with open("notes.txt", "w", encoding="utf-8") as f:
+    f.write("你好")</code></pre>
+  <p>原来文件里有三行字，写完之后还剩几行？为什么？</p>
+  <div class="reveal">
+    <input type="checkbox" id="q2">
+    <label for="q2">显示答案</label>
+    <div class="answer">只剩一行，就是刚写的“你好”。<code>"w"</code> 打开文件时会先把旧内容全部清空，再写新的。想留着旧内容、往后接着写，得用 <code>"a"</code>。</div>
+  </div>
+</div>
+
+<div class="quiz">
+  <h3>第 3 题</h3>
+  <pre><code>data = {"name": "小肥鱼", "score": 92}
+json.dump(data, open("s.json", "w"), ensure_ascii=True)</code></pre>
+  <p>打开 s.json，名字会是什么样？想让它直接显示中文，要改哪里？</p>
+  <div class="reveal">
+    <input type="checkbox" id="q3">
+    <label for="q3">显示答案</label>
+    <div class="answer">名字会变成 <code>"\u5c0f\u80a5\u9c7c"</code> 这种转义编码——<code>ensure_ascii=True</code> 会把所有非 ASCII 字符都转成 <code>\u</code> 编码。想直接看到中文，改成 <code>ensure_ascii=False</code> 就行。</div>
+  </div>
+</div>
+
+<div class="quiz">
+  <h3>第 4 题</h3>
+  <pre><code>with open("scores.json", "r", encoding="utf-8") as f:
+    data = json.load(f)
+data["小明"] = 88
+print(data)</code></pre>
+  <p>打印出来是改过的分数，但 scores.json 文件里的分数变了吗？为什么？缺了哪一步？</p>
+  <div class="reveal">
+    <input type="checkbox" id="q4">
+    <label for="q4">显示答案</label>
+    <div class="answer">文件里没变，还是 78。<code>data["小明"] = 88</code> 只改了读到内存里的那份字典，文件本身一点没动。缺的是“写回去”这一步：再 <code>open</code> 一次用 <code>"w"</code>，<code>json.dump(data, f, ...)</code> 存回去，文件才真的变了。</div>
+  </div>
+</div>
+
+<h2>自查：今天算过关吗</h2>
+<p>下面每一项，能做到就打个勾（打勾只保存在你自己的浏览器里，不会上传到任何地方）。三项都打勾，今天就算过关。</p>
+<ul class="check" id="checklist">
+  <li><label><input type="checkbox"> 我能用 with open 读一个 txt 文件，知道 encoding="utf-8" 是防中文乱码的</label></li>
+  <li><label><input type="checkbox"> 我分得清 "w" 和 "a"，知道 "w" 会清空旧内容</label></li>
+  <li><label><input type="checkbox"> 我能按“读出来 → 改内存里的值 → 再写回去”三步，改掉 json 文件里的一个值</label></li>
+</ul>
+<p id="progress">已完成 0 / 3</p>
+
+<h2>保底任务（10 分钟，没空就只做这个）</h2>
+<p>只做两件事：把本页同目录的 <code>file_io.py</code> 在命令行里跑一遍（先 <code>cd</code> 到它所在的文件夹），看它打印的“改之前”和“改之后”；再把里面 <code>data["小明"] = 88</code> 改成别的分数，跑一遍，对比 <code>scores.json</code> 前后哪里不一样。跑通、看出差别，今天就算没白学。</p>
+
+<h2>防屎山提醒</h2>
+<p>改文件之前，先复制一份备份，比如把 <code>scores.json</code> 复制成 <code>scores_backup.json</code>，改坏了还能拿回来。一次只改一个值，改完跑一次，确认文件真的变了再改下一个。昨天说的“一次只改一行，改完跑一次”今天也一样，只不过改的对象从代码变成了文件里的数据。</p>
+
+<h2>明天预告</h2>
+<p>继续阶段 0，任务 4：认识 pip 和虚拟环境——pip 是给 Python 装别人写好的工具包的，虚拟环境是给每个项目单独准备一套工具、不互相打架的。Agent 要调 API、装各种库，靠的都是这一手。</p>
+
+<div class="nav">
+  <a href="../../index.html">← 回到首页</a>
+  <span>第 3 天 · 阶段 0</span>
+</div>
+
+<footer>
+  <p>原创学习笔记 · Agent-learn · 2026-11-17</p>
+</footer>
+
+</div>
+<script>
+// 增强功能：统计自查打勾数。JS 被拦截时页面照常可用，只是没有计数。
+(function () {
+  var boxes = document.querySelectorAll('#checklist input[type=checkbox]');
+  var text = document.getElementById('progress');
+  function update() {
+    var n = 0;
+    boxes.forEach(function (b) { if (b.checked) n++; });
+    text.textContent = '已完成 ' + n + ' / ' + boxes.length + (n === boxes.length ? ' · 今天过关！' : '');
+  }
+  boxes.forEach(function (b) { b.addEventListener('change', update); });
+  update();
+})();
+</script>
+</body>
+</html>
