@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>第 6 天 · 亲手调通一次大模型 API — Agent-learn</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: -apple-system, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", sans-serif; color: #1f2937; background: #f8fafc; line-height: 1.75; }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 24px 18px 64px; }
+  .top { background: #111827; color: #fff; border-radius: 16px; padding: 22px 24px; }
+  .top h1 { margin: 0 0 6px; font-size: 24px; }
+  .top p { margin: 3px 0; color: #d1d5db; }
+  .top .meta { color: #9ca3af; font-size: 14px; }
+  h2 { margin-top: 34px; font-size: 20px; border-left: 4px solid #2563eb; padding-left: 10px; }
+  h3 { margin-top: 24px; font-size: 17px; }
+  p { margin: 8px 0; }
+  a { color: #2563eb; }
+  pre { background: #111827; color: #e5e7eb; padding: 14px 16px; border-radius: 10px; overflow-x: auto; font-size: 14px; line-height: 1.6; }
+  pre .c { color: #9ca3af; }
+  code { background: #f3f4f6; padding: 1px 5px; border-radius: 4px; font-size: 14px; }
+  pre code { background: none; padding: 0; }
+  .note { background: #fffbeb; border: 1px solid #fde68a; border-radius: 12px; padding: 12px 16px; margin: 14px 0; }
+  .warn { background: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 12px 16px; margin: 14px 0; }
+  .good { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 12px 16px; margin: 14px 0; }
+  .quiz { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px 18px; margin: 14px 0; }
+  .quiz h3 { margin-top: 0; }
+  /* CSS-only reveal: works even when JS is blocked (QQ / WeChat in-app browsers) */
+  .reveal input { display: none; }
+  .reveal label { display: inline-block; background: #2563eb; color: #fff; border-radius: 8px; padding: 6px 14px; cursor: pointer; margin-top: 8px; }
+  .reveal .answer { display: none; margin-top: 10px; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 10px 12px; }
+  .reveal input:checked ~ .answer { display: block; }
+  .reveal input:checked ~ label { display: none; }
+  .check { list-style: none; padding: 0; }
+  .check li { background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 10px 14px; margin: 8px 0; }
+  .check input { width: 18px; height: 18px; vertical-align: -3px; margin-right: 8px; }
+  .nav { margin-top: 36px; display: flex; justify-content: space-between; }
+  .nav a { text-decoration: none; }
+  footer { margin-top: 36px; color: #6b7280; font-size: 14px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="top">
+  <h1>第 6 天 · 亲手调通一次大模型 API</h1>
+  <p>2026 年 11 月 20 日 · 星期五 · 第 6 天 · 阶段 1</p>
+  <p class="meta">标准版 30–60 分钟 · 保底版 10 分钟（只做“保底任务”那一节）</p>
+</div>
+
+<h2>今天要达到什么</h2>
+<p>做完今天，你要能做到一件事：写一段小程序，把一句话发给大模型，再把它的回答打印出来。Agent 的第一块拼图，就是这次调用——以后 Agent 再聪明，底下干活的也是这一次调用，只是外面包了一层“想一想、再调一次”的循环。</p>
+<p>还要弄明白四个东西分别放在哪里：<b>API 地址</b>（找谁）、<b>密钥</b>（证明你是谁）、<b>输入</b>（你说的话）、<b>输出</b>（它回的话）。这四个地方找对了，任何大模型的 API 你都能照葫芦画瓢调通。</p>
+
+<h2>1 · 先画一张地图：四个东西各住哪儿</h2>
+<p>调用大模型，跟去一家店里点菜差不多，四个东西缺一个都不行：</p>
+<pre><code>你要找的店（API 地址）  →  https://api.helloltq.dpdns.org/v1
+证明你是熟客（密钥）    →  你自己中转后台的令牌，运行时粘贴
+你点的菜（输入）        →  messages 里的一句话
+端上来的菜（输出）      →  choices[0].message.content 里的一段话</code></pre>
+<p>地址用的是你自己的中转，不用再注册新账号、不用再找新密钥——你平时在客户端里用的就是这个地址和这套令牌，今天只不过换成自己写代码来调它。</p>
+<div class="note"><b>先说清楚“密钥”是什么：</b>令牌就是一把钥匙，拿着它才能用你的额度。它和密码一样重要：可以粘贴给自己的程序用，但别发给别人，别写进要上传到网上的文件里。今天的代码特意不把密钥写死在文件里，跑起来的时候现粘贴，用完就忘。</div>
+<p>输入和输出都是 <code>json</code>，就是第 3 天学过的那种长得像 Python 字典的东西：输入是一个字典，里面装着模型名字和你要说的话；输出也是一个字典，回答藏在 <code>choices</code> 这个列表的第一项里。</p>
+
+<h2>2 · 完整代码：call_api.py</h2>
+<p>只用第 4 天学过的 <code>requests</code>，不用装新东西。文件已经放在今天的文件夹里了，名字叫 <code>call_api.py</code>：</p>
+<pre><code>import requests
+
+BASE_URL = "https://api.helloltq.dpdns.org/v1"
+MODEL = "deepseek-v4.1-flash-1017"
+
+api_key = input("把你的令牌粘贴进来（粘贴后按回车，不会显示在文件里）：").strip()
+question = input("想问大模型什么？直接打一句话：").strip()
+
+r = requests.post(
+    BASE_URL + "/chat/completions",
+    headers={
+        "Authorization": "Bearer " + api_key,
+        "Content-Type": "application/json",
+    },
+    json={
+        "model": MODEL,
+        "messages": [{"role": "user", "content": question}],
+        "max_tokens": 200,
+    },
+    timeout=60,
+)
+
+print("状态码：", r.status_code)
+if r.status_code != 200:
+    print("这次没调通，服务器回的是：")
+    print(r.text)
+else:
+    data = r.json()
+    reply = data["choices"][0]["message"]["content"]
+    print("大模型回你：")
+    print(reply)</code></pre>
+<p>先别急着跑，下一节把每一块拆开讲，知道它在干什么再跑，报错了你才知道去哪儿找。</p>
+
+<h2>3 · 一行一行读懂它</h2>
+<p><b><code>BASE_URL + "/chat/completions"</code>：</b>完整的地址就是“店门口 + 菜单”。<code>/v1</code> 是版本号，<code>/chat/completions</code> 是“聊天补全”这个服务的名字，意思就是“你发一句话，我把它补全成一段回答”。</p>
+<p><b><code>headers</code> 里那两行：</b><code>Authorization: Bearer + 令牌</code> 是在门口亮出钥匙，告诉服务器“我有额度，让我进”；<code>Content-Type: application/json</code> 是告诉服务器“我发过去的是 json 格式，你按 json 读”。</p>
+<p><b><code>json={...}</code> 里那三样：</b><code>model</code> 是点哪个模型——这里用的是你中转上已经验证过的 <code>deepseek-v4.1-flash-1017</code>；<code>messages</code> 是你要说的话，是一个列表，里面装着一个字典，<code>role</code> 是 <code>user</code>（说话的是你），<code>content</code> 就是你问的那句话；<code>max_tokens</code> 是“最多回多少字”，200 够回一小段话，又不会一下子烧太多额度。</p>
+<p><b><code>data["choices"][0]["message"]["content"]</code>：</b>这是从输出里取回答的路，一层一层剥开：<code>data</code> 是整个回答字典 → <code>choices</code> 是里面的一个列表（一般只有一项）→ <code>[0]</code> 取第一项 → <code>message</code> 是那一项里的消息字典 → <code>content</code> 才是真正的回答文字。第 2 天学的字典取值、第 3 天学的 json，在这里全用上了。</p>
+<div class="note"><b>用 print() 当探照灯：</b>第 2 天的老办法在这里一样管用。看不懂服务器回了什么，就在取回答之前先 <code>print(data)</code>，把整个字典打出来，对照着找你要的那一层在哪儿。</div>
+
+<h2>4 · 跑起来：三步</h2>
+<p>第一步，打开命令行，<code>cd</code> 进今天的文件夹（第 5 天练过的，<code>dir</code> 确认 <code>call_api.py</code> 在里面）。第二步，<code>python call_api.py</code> 跑起来。第三步，它先问你要令牌——去你自己的中转后台“令牌”那里新建一个、复制过来粘贴；再问你想问什么，打一句短的，比如“用一句话介绍鲁班”，按回车。</p>
+<p>跑通了，屏幕上会先印一个 <code>状态码： 200</code>，200 就是“成了”的意思，再往下就是大模型的回答。</p>
+<div class="warn"><b>令牌的三条规矩：</b>第一，别写进 <code>call_api.py</code> 里，这个文件以后是要推到公开仓库的；第二，别截图发给别人；第三，万一不小心发出去了，去中转后台把那个令牌删掉重建一个就行，不用慌。</div>
+
+<h2>5 · 报错先看状态码，再看最后一行</h2>
+<p>第 3 天学过，报错先看最后一行；调 API 还要多看一眼状态码，它就写在输出的第一行：</p>
+<p><b>401：</b>钥匙不对。令牌粘贴错了、多复制了空格，或者这个令牌被删了、过期了。重新去后台复制一个再试。</p>
+<p><b>404：</b>模型名字不对。服务器上没有 <code>MODEL</code> 里写的这个模型。去中转后台的模型列表里看一眼，抄一个列表里有的名字换上去。</p>
+<p><b>超时、连不上：</b>先看地址抄错没有，再看自己的网络——中转地址本身平时在手机上能打开，电脑上打不开多半是网络问题，换个网络再试一次。</p>
+<p><b>200 但回答是空的：</b>看看 <code>max_tokens</code> 是不是设得太小了，回答还没开始就被截断了；200 这个数平时够用，第一次调通别改它。</p>
+
+<h2>读代码小题，4 道，带答案</h2>
+
+<div class="quiz">
+  <h3>第 1 题</h3>
+  <pre><code>r = requests.post(BASE_URL + "/chat/completions", json={...}, timeout=60)</code></pre>
+  <p>这次调用里，如果把 <code>headers</code> 整个删掉不传，服务器最可能回什么状态码？为什么？</p>
+  <div class="reveal">
+    <input type="checkbox" id="q1">
+    <label for="q1">显示答案</label>
+    <div class="answer">最可能是 401。没有 headers，请求里就没有 Authorization 那把钥匙，服务器不知道你是谁、没有额度，当然不让你进。地址、输入都对也没用，门口那一关就过不去。</div>
+  </div>
+</div>
+
+<div class="quiz">
+  <h3>第 2 题</h3>
+  <pre><code>data = r.json()
+reply = data["choices"][0]["message"]["content"]</code></pre>
+  <p><code>data["choices"]</code> 是字典还是列表？<code>[0]</code> 在这里是什么意思？如果把 <code>[0]</code> 漏掉，直接写 <code>data["choices"]["message"]</code> 会怎样？</p>
+  <div class="reveal">
+    <input type="checkbox" id="q2">
+    <label for="q2">显示答案</label>
+    <div class="answer"><code>data["choices"]</code> 是一个列表，里面装着回答的候选项，一般只有一项。<code>[0]</code> 是取列表里的第一项。漏掉它就等于拿着一个列表去问它要 <code>message</code>，列表没有这一项，会报错——字典才能按名字取值，列表得按位置取。</div>
+  </div>
+</div>
+
+<div class="quiz">
+  <h3>第 3 题</h3>
+  <p>有人把令牌直接写进 <code>call_api.py</code>，写成 <code>api_key = "sk-xxxx..."</code>，然后把这个文件推到了公开的 GitHub 仓库里。会发生什么？正确的做法是什么？</p>
+  <div class="reveal">
+    <input type="checkbox" id="q3">
+    <label for="q3">显示答案</label>
+    <div class="answer">任何人打开那个仓库都能看到这把钥匙，拿去刷你的额度。正确做法就是今天代码这样：密钥不写进文件，运行时用 <code>input()</code> 粘贴；万一已经发出去了，马上回中转后台把那个令牌删掉重建一个。</div>
+  </div>
+</div>
+
+<div class="quiz">
+  <h3>第 4 题</h3>
+  <p>把 <code>max_tokens</code> 从 200 改成 2，再问“用一句话介绍鲁班”，大模型会回你什么？为什么平时调通测试只用 1–2 个 token 就够了？</p>
+  <div class="reveal">
+    <input type="checkbox" id="q4">
+    <label for="q4">显示答案</label>
+    <div class="answer">只会回一两个字就被截断，比如一个“鲁”字，句子根本没说完。只测“通没通”的话，这样就够了：只要状态码是 200、能收到东西，就说明地址、密钥、输入、输出四处都对了，不用等它把整段话说完才确认，白白烧额度。</div>
+  </div>
+</div>
+
+<h2>自查：今天算过关吗</h2>
+<p>下面每一项，能做到就打个勾（打勾只保存在你自己的浏览器里，不会上传到任何地方）。三项都打勾，今天就算过关。</p>
+<ul class="check" id="checklist">
+  <li><label><input type="checkbox"> 我能说出 API 地址、密钥、输入、输出四个东西分别放在代码的哪一行</label></li>
+  <li><label><input type="checkbox"> 我跑通了一次真正的调用，状态码是 200，屏幕上印出了大模型的回答</label></li>
+  <li><label><input type="checkbox"> 看到 401 / 404，我知道先去查令牌还是模型名字，而不是瞎改代码</label></li>
+</ul>
+<p id="progress">已完成 0 / 3</p>
+
+<h2>保底任务（10 分钟，没空就只做这个）</h2>
+<p>只做一件事：<code>cd</code> 进今天的文件夹，<code>python call_api.py</code> 跑起来，粘贴令牌，问一句短的，看到状态码 200 和一句回答。跑通一次，今天就算没白学；换个问题再跑一次，就当加练。</p>
+
+<h2>防屎山提醒</h2>
+<p>今天的屎山不在代码里，在密钥里：图省事把令牌写进代码、写进聊天记录、写进截图，等于把家门钥匙贴在门上。规矩就一条——密钥只活在运行的那一刻，不活在任何文件里。今天养成这个习惯，以后 Agent 调一百个工具也不会漏钥匙。</p>
+
+<h2>明天预告</h2>
+<p>明天还是阶段 1：把回答拆开用——只取正文、处理报错，让程序不怕模型回错话、回空话。今天是把话递过去、把回答拿回来，明天是让程序自己读懂拿回来的东西。</p>
+
+<div class="nav">
+  <a href="../../index.html">← 回到首页</a>
+  <span>第 6 天 · 阶段 1</span>
+</div>
+
+<footer>
+  <p>原创学习笔记 · Agent-learn · 2026-11-20</p>
+</footer>
+
+</div>
+<script>
+// 增强功能：统计自查打勾数。JS 被拦截时页面照常可用，只是没有计数。
+(function () {
+  var boxes = document.querySelectorAll('#checklist input[type=checkbox]');
+  var text = document.getElementById('progress');
+  function update() {
+    var n = 0;
+    boxes.forEach(function (b) { if (b.checked) n++; });
+    text.textContent = '已完成 ' + n + ' / ' + boxes.length + (n === boxes.length ? ' · 今天过关！' : '');
+  }
+  boxes.forEach(function (b) { b.addEventListener('change', update); });
+  update();
+})();
+</script>
+</body>
+</html>

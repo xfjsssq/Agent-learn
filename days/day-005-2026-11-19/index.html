@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>第 5 天 · 命令行只记四件事 — Agent-learn</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: -apple-system, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", sans-serif; color: #1f2937; background: #f8fafc; line-height: 1.75; }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 24px 18px 64px; }
+  .top { background: #111827; color: #fff; border-radius: 16px; padding: 22px 24px; }
+  .top h1 { margin: 0 0 6px; font-size: 24px; }
+  .top p { margin: 3px 0; color: #d1d5db; }
+  .top .meta { color: #9ca3af; font-size: 14px; }
+  h2 { margin-top: 34px; font-size: 20px; border-left: 4px solid #2563eb; padding-left: 10px; }
+  h3 { margin-top: 24px; font-size: 17px; }
+  p { margin: 8px 0; }
+  a { color: #2563eb; }
+  pre { background: #111827; color: #e5e7eb; padding: 14px 16px; border-radius: 10px; overflow-x: auto; font-size: 14px; line-height: 1.6; }
+  pre .c { color: #9ca3af; }
+  code { background: #f3f4f6; padding: 1px 5px; border-radius: 4px; font-size: 14px; }
+  pre code { background: none; padding: 0; }
+  .note { background: #fffbeb; border: 1px solid #fde68a; border-radius: 12px; padding: 12px 16px; margin: 14px 0; }
+  .warn { background: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 12px 16px; margin: 14px 0; }
+  .good { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 12px 16px; margin: 14px 0; }
+  .quiz { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px 18px; margin: 14px 0; }
+  .quiz h3 { margin-top: 0; }
+  /* CSS-only reveal: works even when JS is blocked (QQ / WeChat in-app browsers) */
+  .reveal input { display: none; }
+  .reveal label { display: inline-block; background: #2563eb; color: #fff; border-radius: 8px; padding: 6px 14px; cursor: pointer; margin-top: 8px; }
+  .reveal .answer { display: none; margin-top: 10px; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 10px 12px; }
+  .reveal input:checked ~ .answer { display: block; }
+  .reveal input:checked ~ label { display: none; }
+  .check { list-style: none; padding: 0; }
+  .check li { background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 10px 14px; margin: 8px 0; }
+  .check input { width: 18px; height: 18px; vertical-align: -3px; margin-right: 8px; }
+  .nav { margin-top: 36px; display: flex; justify-content: space-between; }
+  .nav a { text-decoration: none; }
+  footer { margin-top: 36px; color: #6b7280; font-size: 14px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="top">
+  <h1>第 5 天 · 命令行只记四件事</h1>
+  <p>2026 年 11 月 19 日 · 星期四 · 第 5 天 · 阶段 0</p>
+  <p class="meta">标准版 30–60 分钟 · 保底版 10 分钟（只做“保底任务”那一节）</p>
+</div>
+
+<h2>今天要达到什么</h2>
+<p>做完今天，你要能做到四件事：第一，用 <code>cd</code> 走进任何一个文件夹；第二，用 <code>dir</code> 看清楚当前文件夹里有什么；第三，用 <code>python xxx.py</code> 把一个 Python 文件跑起来；第四，程序卡住或者跑个没完的时候，用 <code>Ctrl+C</code> 把它停下来。</p>
+<p>前四天你其实已经零零散散用过这些命令了：建虚拟环境要 <code>cd</code> 进文件夹，装包之前要确认自己在哪个文件夹，跑 <code>hello.py</code>、<code>try_requests.py</code> 用的就是 <code>python xxx.py</code>。今天就是把它们收拢成一张小抄，练熟了，以后不用每次都现查。这是阶段 0 的最后一块地基——命令行顺手了，阶段 1 调 API 才能专心想逻辑，而不是跟黑窗口较劲。</p>
+
+<h2>1 · 命令行是什么：一个黑窗口，一行命令</h2>
+<p>命令行就是一个黑底白字的窗口，你敲一行字、按回车，电脑就照着做一件事。它没有按钮和鼠标点来点去，但胜在直接：你想让电脑做什么，写出来就行。</p>
+<p>Windows 上打开它的方法：按 <code>Win + R</code>，输入 <code>cmd</code>，按回车；或者在开始菜单里搜“命令提示符”。打开之后你会看到一行提示符，像这样：</p>
+<pre><code>C:\Users\你的名字&gt;</code></pre>
+<p>这行字就是命令行的“当前所在位置”——你现在站在哪个文件夹里。所有命令都是在这个位置上执行的，文件找不找得到，全看你现在站在哪儿。这就是为什么第一件事是学会“走路”：进对文件夹。</p>
+<div class="note"><b>PowerShell 也行：</b>Windows 还有一个叫 PowerShell 的黑窗口，功能更强。今天这四条命令在 cmd 和 PowerShell 里都能用，哪个顺手用哪个，不用纠结选哪个。</div>
+
+<h2>2 · 第一件事：cd，进文件夹</h2>
+<p><code>cd</code> 是 change directory 的缩写，意思是“换到这个文件夹去”。用法就是 <code>cd</code> 后面跟文件夹的名字：</p>
+<pre><code>cd agent-practice</code></pre>
+<p>敲完回车，提示符就变成 <code>C:\Users\你的名字\agent-practice&gt;</code>，说明你已经走进 <code>agent-practice</code> 这个文件夹了。接下来你敲的所有命令，都是在这个文件夹里执行的。</p>
+<p>常用的三个走法，记住就够了：</p>
+<pre><code><span class="c"># 走进一个子文件夹：</span>
+cd agent-practice
+
+<span class="c"># 回到上一级文件夹：</span>
+cd ..
+
+<span class="c"># 直接跳到某个完整路径（从盘符写起）：</span>
+cd C:\Users\你的名字\agent-practice</code></pre>
+<p><code>cd ..</code> 里的两个点就是“上一级”的意思。在 <code>agent-practice</code> 里敲 <code>cd ..</code>，就回到 <code>C:\Users\你的名字</code>。一层一层往上走，就靠它。</p>
+<div class="warn"><b>最容易翻车的一点：</b>文件夹名字里有空格，比如 <code>my project</code>，直接 <code>cd my project</code> 会报错，因为命令行以为你要进两个地方。办法是加上双引号：<code>cd "my project"</code>。所以平时给文件夹起名字，尽量别用空格，用 <code>-</code> 或者 <code>_</code> 连接，比如 <code>agent-practice</code>。</div>
+<p>还有一个省事的技巧：敲文件夹名字的前几个字母，按一下 <code>Tab</code> 键，命令行会自动帮你补全剩下的部分。按一下不对就再按一下，它会轮着换下一个候选。名字长的时候，这个技巧能省不少事。</p>
+
+<h2>3 · 第二件事：dir，看当前有什么</h2>
+<p>进了一个文件夹，总得先看看里面有什么。<code>dir</code> 就是“列出当前文件夹里的东西”：</p>
+<pre><code>dir</code></pre>
+<p>敲完回车，你会看到一份清单：子文件夹的名字、文件的名字和大小。看到 <code>hello.py</code> 在清单里，才说明你现在这个文件夹里确实有这个文件，才能接着跑它。</p>
+<p>macOS / Linux 上对应的命令是 <code>ls</code>，作用一模一样，只是名字不同：</p>
+<pre><code><span class="c"># Windows：</span>
+dir
+
+<span class="c"># macOS / Linux：</span>
+ls</code></pre>
+<p>你以后在教程里看到 <code>ls</code>，知道它就是 Windows 的 <code>dir</code>，别被名字唬住。</p>
+<p><code>cd</code> 和 <code>dir</code> 是一对搭档：先 <code>dir</code> 看看有什么，确认文件夹名字没敲错，再 <code>cd</code> 走进去；走进去之后再 <code>dir</code>，确认自己要的文件在不在。每次“文件找不到了”，先别怀疑人生，先 <code>dir</code> 一下——十有八九是你站错了文件夹。</p>
+
+<h2>4 · 第三件事：python xxx.py，运行一个 py 文件</h2>
+<p>写好的 Python 文件，要靠这一条命令跑起来：</p>
+<pre><code>python hello.py</code></pre>
+<p><code>python</code> 是“请 Python 来干活”，<code>hello.py</code> 是“要干活的那个文件”。合起来就是：让 Python 把 <code>hello.py</code> 里的代码从头到尾执行一遍，执行结果直接打印在这个黑窗口里。</p>
+<p>前四天你跑过的每一个练习文件，用的都是这条命令。把它们都再跑一遍，就当复习：</p>
+<pre><code>python hello.py
+python debug_print.py
+python file_io.py
+python try_requests.py</code></pre>
+<p>每跑一个，看一眼输出还认不认识：<code>hello.py</code> 是第一天那句打印，<code>debug_print.py</code> 是第二天用 print 抓 bug 的练习，<code>file_io.py</code> 是第三天读写文件的练习，<code>try_requests.py</code> 是昨天装 requests 之后跑通的那个。四个都能跑起来，说明前四天的东西都在你手里。</p>
+<div class="note"><b>python 还是 python3？</b>Windows 上一般是 <code>python</code>，macOS / Linux 上常常是 <code>python3</code>。哪个命令能跑出版本号（<code>python --version</code>）就用哪个，不用纠结——昨天第 4 天也提过这一点。</div>
+<div class="warn"><b>报错说找不到文件的时候：</b>先看报错第一行是不是 <code>can't open file</code> 之类的话。如果是，说明文件不在当前文件夹里：先 <code>dir</code> 看看清单，确认文件名有没有敲错、是不是站错了文件夹。文件名差一个字母、大小写不对，都会找不到。</div>
+
+<h2>5 · 第四件事：Ctrl+C，停下来</h2>
+<p>程序跑起来之后，有时候会卡住不动，或者陷入死循环，一直刷屏停不下来。这时候不用关窗口，也不用重启电脑，按住 <code>Ctrl</code> 再按一下 <code>C</code>：</p>
+<pre><code><span class="c"># 程序卡住 / 刷屏不停的时候，按：</span>
+Ctrl + C</code></pre>
+<p>命令行会打断正在跑的程序，回到提示符，屏幕上一般会多一行 <code>KeyboardInterrupt</code>——那是 Python 在说“收到，你让我停我就停了”。这不是报错，是你主动叫停的正常结果。</p>
+<p>什么时候会用到它？最常见的是两种：一种是写了死循环（比如 <code>while True</code> 里忘了写退出的条件），程序永远跑不完；另一种是昨天那种等网络的程序，网一直不通，程序就一直等着。两种情况都是按 <code>Ctrl+C</code> 停下来，改代码，再跑。</p>
+<div class="note"><b>按一次没反应怎么办：</b>有时候按一下停不下来，再按一次。还不行，就直接把黑窗口关掉重开一个——窗口关了，里面跑着的程序也就跟着停了。关窗口是最后的办法，平时 <code>Ctrl+C</code> 就够了。</div>
+
+<h2>6 · 四件事串起来：今天的小抄</h2>
+<p>把这四条命令连起来，就是以后每天都要走一遍的流程：</p>
+<pre><code><span class="c"># 1. 走进练习文件夹</span>
+cd agent-practice
+
+<span class="c"># 2. 看一眼里面有什么，确认文件在</span>
+dir
+
+<span class="c"># 3. 跑起来</span>
+python hello.py
+
+<span class="c"># 4. 卡住 / 刷屏不停的时候，Ctrl+C 停下来</span></code></pre>
+<p>就这么四行。以后每学一个新东西，流程都是这个：<code>cd</code> 进去、<code>dir</code> 看一眼、<code>python</code> 跑起来、出问题 <code>Ctrl+C</code> 停下来改。把这张小抄贴在手边，用上一个星期，就不用再查了。</p>
+<div class="good"><b>阶段 0 收官：</b>五天下来，你已经攒齐了整套地基——能读 Python 代码、会用 print 找 bug、会读写文件、会装包建虚拟环境、会在命令行里走路跑程序。下一阶段要调大模型 API，用的全是这些：写个 py 文件调接口，跑起来看返回，报错了读最后一行，改了再跑。地基齐了，就可以往上盖了。</div>
+
+<h2>7 · 容易踩的五个坑</h2>
+<ul>
+  <li><b>站错文件夹就跑程序：</b>在 <code>C:\Users\你的名字</code> 里跑 <code>python hello.py</code>，但 <code>hello.py</code> 其实在 <code>agent-practice</code> 里，就会报找不到文件。先 <code>cd</code> 进去，再跑。</li>
+  <li><b>文件夹名字有空格没加引号：</b><code>cd my project</code> 会报错，要写 <code>cd "my project"</code>。起名的时候直接避开空格最省事。</li>
+  <li><b>dir 和 ls 混着用：</b>Windows 上是 <code>dir</code>，macOS / Linux 上是 <code>ls</code>，两个系统名字不一样，抄教程的时候先看自己是哪个系统。</li>
+  <li><b>python 后面忘了写文件名：</b>只敲 <code>python</code> 会进 Python 自己的交互界面（出现 <code>&gt;&gt;&gt;</code>），那不是跑文件。要跑文件一定是 <code>python xxx.py</code>，后面跟文件名。</li>
+  <li><b>程序刷屏就慌着关窗口：</b>先试 <code>Ctrl+C</code>，一次不行再按一次。关窗口是最后的办法，而且关了之后刚才的输出就看不到了。</li>
+</ul>
+
+<h2>测一测：读代码小题</h2>
+<p>下面四道题不用写代码，只要读，然后想一想会发生什么。点“显示答案”对一下。</p>
+
+<div class="quiz">
+  <h3>第 1 题</h3>
+  <pre><code>C:\Users\小肥鱼&gt; cd agent-practice
+C:\Users\小肥鱼\agent-practice&gt; dir</code></pre>
+  <p><code>cd agent-practice</code> 之后，提示符发生了什么变化？这时候敲 <code>dir</code>，列出来的是哪个文件夹里的东西？</p>
+  <div class="reveal">
+    <input type="checkbox" id="q1">
+    <label for="q1">显示答案</label>
+    <div class="answer">提示符从 <code>C:\Users\小肥鱼&gt;</code> 变成了 <code>C:\Users\小肥鱼\agent-practice&gt;</code>，说明你已经走进 agent-practice 了。这时候 <code>dir</code> 列出来的就是 <code>agent-practice</code> 里面的东西，不再是上一级文件夹的。</div>
+  </div>
+</div>
+
+<div class="quiz">
+  <h3>第 2 题</h3>
+  <pre><code>C:\Users\小肥鱼&gt; python hello.py
+python: can't open file 'hello.py': [Errno 2] No such file or directory</code></pre>
+  <p>报错说找不到 <code>hello.py</code>。最可能的原因是什么？第一步应该先敲什么命令确认？</p>
+  <div class="reveal">
+    <input type="checkbox" id="q2">
+    <label for="q2">显示答案</label>
+    <div class="answer">最可能是你站错了文件夹：<code>hello.py</code> 在 <code>agent-practice</code> 里，而你现在还在 <code>C:\Users\小肥鱼</code>。第一步先敲 <code>dir</code>，看看清单里到底有没有 <code>hello.py</code>；没有的话，就 <code>cd agent-practice</code> 走进去再跑。</div>
+  </div>
+</div>
+
+<div class="quiz">
+  <h3>第 3 题</h3>
+  <pre><code>while True:
+    print("还在跑")</code></pre>
+  <p>这段代码跑起来会发生什么？要怎么让它停下来？停下来之后屏幕上会多出什么字？</p>
+  <div class="reveal">
+    <input type="checkbox" id="q3">
+    <label for="q3">显示答案</label>
+    <div class="answer">会一直打印“还在跑”，刷屏停不下来，因为 <code>while True</code> 的条件永远是真的，没有退出的路。按 <code>Ctrl+C</code> 就能打断它，屏幕上会多一行 <code>KeyboardInterrupt</code>，意思是程序是被你主动叫停的，不算报错。</div>
+  </div>
+</div>
+
+<div class="quiz">
+  <h3>第 4 题</h3>
+  <pre><code>C:\Users\小肥鱼\agent-practice&gt; cd ..
+C:\Users\小肥鱼&gt; dir</code></pre>
+  <p><code>cd ..</code> 之后你回到了哪里？这时候 <code>dir</code> 列出来的东西，和刚才在 <code>agent-practice</code> 里看到的一样吗？</p>
+  <div class="reveal">
+    <input type="checkbox" id="q4">
+    <label for="q4">显示答案</label>
+    <div class="answer">回到了上一级文件夹 <code>C:\Users\小肥鱼</code>。这时候 <code>dir</code> 列出来的是这一级的东西——里面会有 <code>agent-practice</code> 这个文件夹本身，但不会再有 <code>hello.py</code> 那些文件，因为它们在下一级里面。</div>
+  </div>
+</div>
+
+<h2>自查：今天算过关吗</h2>
+<p>下面每一项，能做到就打个勾（打勾只保存在你自己的浏览器里，不会上传到任何地方）。三项都打勾，今天就算过关。</p>
+<ul class="check" id="checklist">
+  <li><label><input type="checkbox"> 我能用 cd 走进文件夹、用 dir 看里面有什么，不再站错地方跑程序</label></li>
+  <li><label><input type="checkbox"> 我能用 python xxx.py 把前四天的练习文件都跑起来</label></li>
+  <li><label><input type="checkbox"> 程序卡住或刷屏时，我知道按 Ctrl+C 停下来，而不是直接关窗口</label></li>
+</ul>
+<p id="progress">已完成 0 / 3</p>
+
+<h2>保底任务（10 分钟，没空就只做这个）</h2>
+<p>只做一件事：打开命令行，<code>cd</code> 进你的练习文件夹，<code>dir</code> 看一眼，确认 <code>hello.py</code> 在里面，然后 <code>python hello.py</code> 跑起来，看到输出。走通一次“进文件夹—看一眼—跑起来”，今天就算没白学。</p>
+
+<h2>防屎山提醒</h2>
+<p>文件放得到处都是，本身就是一种屎山：同一个练习文件在桌面、下载文件夹、D 盘各有一份，改了这个忘了那个，最后不知道哪个才是最新的。从今天起养成习惯——一个项目一个文件夹，<code>cd</code> 进去再干活，文件只放在该放的地方。位置对了，代码才不容易乱。</p>
+
+<h2>明天预告</h2>
+<p>阶段 0 今天收官，明天开始阶段 1：亲手调通 API。写一个小程序，真的去调用一次大模型，让它回你一句话——Agent 的第一块拼图，就是从这次调用开始的。</p>
+
+<div class="nav">
+  <a href="../../index.html">← 回到首页</a>
+  <span>第 5 天 · 阶段 0</span>
+</div>
+
+<footer>
+  <p>原创学习笔记 · Agent-learn · 2026-11-19</p>
+</footer>
+
+</div>
+<script>
+// 增强功能：统计自查打勾数。JS 被拦截时页面照常可用，只是没有计数。
+(function () {
+  var boxes = document.querySelectorAll('#checklist input[type=checkbox]');
+  var text = document.getElementById('progress');
+  function update() {
+    var n = 0;
+    boxes.forEach(function (b) { if (b.checked) n++; });
+    text.textContent = '已完成 ' + n + ' / ' + boxes.length + (n === boxes.length ? ' · 今天过关！' : '');
+  }
+  boxes.forEach(function (b) { b.addEventListener('change', update); });
+  update();
+})();
+</script>
+</body>
+</html>
