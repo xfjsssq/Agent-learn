@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>第 7 天 · 把回答拆开用：只取正文、处理报错 — Agent-learn</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: -apple-system, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", sans-serif; color: #1f2937; background: #f8fafc; line-height: 1.75; }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 24px 18px 64px; }
+  .top { background: #111827; color: #fff; border-radius: 16px; padding: 22px 24px; }
+  .top h1 { margin: 0 0 6px; font-size: 24px; }
+  .top p { margin: 3px 0; color: #d1d5db; }
+  .top .meta { color: #9ca3af; font-size: 14px; }
+  h2 { margin-top: 34px; font-size: 20px; border-left: 4px solid #2563eb; padding-left: 10px; }
+  h3 { margin-top: 24px; font-size: 17px; }
+  p { margin: 8px 0; }
+  a { color: #2563eb; }
+  pre { background: #111827; color: #e5e7eb; padding: 14px 16px; border-radius: 10px; overflow-x: auto; font-size: 14px; line-height: 1.6; }
+  pre .c { color: #9ca3af; }
+  code { background: #f3f4f6; padding: 1px 5px; border-radius: 4px; font-size: 14px; }
+  pre code { background: none; padding: 0; }
+  .note { background: #fffbeb; border: 1px solid #fde68a; border-radius: 12px; padding: 12px 16px; margin: 14px 0; }
+  .warn { background: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 12px 16px; margin: 14px 0; }
+  .good { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 12px 16px; margin: 14px 0; }
+  .quiz { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px 18px; margin: 14px 0; }
+  .quiz h3 { margin-top: 0; }
+  /* CSS-only reveal: works even when JS is blocked (QQ / WeChat in-app browsers) */
+  .reveal input { display: none; }
+  .reveal label { display: inline-block; background: #2563eb; color: #fff; border-radius: 8px; padding: 6px 14px; cursor: pointer; margin-top: 8px; }
+  .reveal .answer { display: none; margin-top: 10px; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 10px 12px; }
+  .reveal input:checked ~ .answer { display: block; }
+  .reveal input:checked ~ label { display: none; }
+  .check { list-style: none; padding: 0; }
+  .check li { background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 10px 14px; margin: 8px 0; }
+  .check input { width: 18px; height: 18px; vertical-align: -3px; margin-right: 8px; }
+  .nav { margin-top: 36px; display: flex; justify-content: space-between; }
+  .nav a { text-decoration: none; }
+  footer { margin-top: 36px; color: #6b7280; font-size: 14px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="top">
+  <h1>第 7 天 · 把回答拆开用：只取正文、处理报错</h1>
+  <p>2026 年 11 月 21 日 · 星期六 · 第 7 天 · 阶段 1</p>
+  <p class="meta">标准版 30–60 分钟 · 保底版 10 分钟（只做“保底任务”那一节）</p>
+</div>
+
+<h2>今天要达到什么</h2>
+<p>做完今天，你的程序要学会一件事：<b>大模型回的东西，不一定是你要的样子</b>。它可能回错话（状态码不是 200）、回空话（正文是空的）、甚至根本没连上。昨天的代码遇到这些情况会直接崩——屏幕上跳出一大段红色报错，程序停了。今天把它改成：<b>出问题也不崩，只印一句人话，告诉你哪儿不对</b>。</p>
+<p>还要学会两个新工具：<code>.get()</code>（取字典里的东西，取不到也不崩）和 <code>try / except</code>（先试着跑，跑坏了就接住）。这两个工具，以后 Agent 每调一次模型、每读一次文件都会用到，是 Agent 不怕出错的底气。</p>
+
+<h2>1 · 昨天代码的软肋：三行能崩的地方</h2>
+<p>昨天那段取回答的代码只有一行，但它默认了三件事，每件都可能不成立：</p>
+<pre><code>reply = data["choices"][0]["message"]["content"]</code></pre>
+<p><b>第一，<code>data</code> 里一定有 <code>choices</code> 吗？</b>服务器一忙，回来的可能是一个报错字典，里面根本没有 <code>choices</code> 这一项，用 <code>[]</code> 取就会报 <code>KeyError</code>。</p>
+<p><b>第二，<code>choices</code> 里一定有东西吗？</b>模型可能一个候选都没给，<code>choices</code> 是个空列表 <code>[]</code>，<code>[0]</code> 取第一项就会报 <code>IndexError</code>。</p>
+<p><b>第三，<code>content</code> 一定是正文吗？</b>它可能是空字符串 <code>""</code>，也可能是 <code>None</code>（意思是“这里没有东西”）。程序拿着空的 <code>content</code> 当回答往下走，后面每一步都会错。</p>
+<p>第 3 天学过，报错先看最后一行。但 Agent 以后一次要调几十上百次模型，靠你每次盯着最后一行救场是不行的——<b>程序自己得学会“拿不到就认、认了就说一声、说了就继续”</b>。</p>
+
+<h2>2 · 新工具一：.get()，取不到就给个默认值</h2>
+<p>字典除了能用 <code>[]</code> 取值，还能用 <code>.get()</code> 取。两者的区别只有一句：</p>
+<pre><code>data["choices"]        # 有就给，没有就崩（KeyError）
+data.get("choices")    # 有就给，没有就给 None，不崩</code></pre>
+<p><code>.get()</code> 还能自己定“没有时给什么”：<code>data.get("choices", [])</code> 的意思是“有 <code>choices</code> 就拿它，没有就给一个空列表”。今天代码里写的是 <code>data.get("choices") or []</code>，意思差不多：如果取出来是 <code>None</code>，就用空列表代替。</p>
+<p>还有一个小细节：<code>None</code>、空字符串 <code>""</code>、空列表 <code>[]</code>，在 <code>if</code> 里都被当成“假”。所以 <code>if not choices:</code> 这一句，能同时挡住“没有 <code>choices</code>”和“<code>choices</code> 是空列表”两种情况，不用分开写两次。</p>
+<div class="note"><b>为什么不用 <code>if content is None</code>？</b>因为空话有两种样子：<code>None</code>（没有东西）和 <code>""</code>（东西是空的）。<code>if not content:</code> 两个都挡得住，写 <code>is None</code> 只能挡住前一个。记住一句口诀：想判断“有没有拿到能用的东西”，用 <code>if not x</code>；想精确判断“是不是 <code>None</code>”，才用 <code>is None</code>。</div>
+
+<h2>3 · 新工具二：try / except，先试，坏了就接住</h2>
+<p><code>.get()</code> 管的是“字典里有没有这一项”，还有一类问题它管不了：<b>网络本身出问题</b>。比如网断了、服务器超时没回，<code>requests.post()</code> 这一步就会直接抛异常，程序没等到回答就崩了。</p>
+<pre><code>try:
+    r = requests.post(...)   # 先试着跑
+except requests.exceptions.RequestException as e:
+    print("没连上服务器：", e)
+    return None              # 跑坏了就接住，印一句人话，返回 None</code></pre>
+<p><code>try</code> 后面的代码是“先试着跑”；<code>except</code> 后面的代码是“跑坏了怎么办”。<code>requests.exceptions.RequestException</code> 是个大筐，超时、断网、连不上都装在里面，写它一个就够了，不用每种错单写一个。</p>
+<p>同样的办法也用在 <code>r.json()</code> 上：服务器偶尔回的不是 json（比如一段报错网页），<code>r.json()</code> 会报 <code>ValueError</code>，接住它，印一句“回的不是 json”，再把原文印出来给你看。</p>
+<div class="note"><b><code>return None</code> 是什么意思？</b><code>None</code> 就是 Python 里“没有东西”的意思。今天的规矩是：函数拿不到正文，就回一个 <code>None</code>，调用它的人看到 <code>None</code> 就知道“这次没拿到”，而不是拿到一半报错。这样主程序最后只要判断一次 <code>if reply is None</code>，就能分清“拿到了”和“没拿到”两种情况。</div>
+
+<h2>4 · 完整代码：parse_reply.py</h2>
+<p>文件已经放在今天的文件夹里了，名字叫 <code>parse_reply.py</code>。它就是昨天的 <code>call_api.py</code> 加了两层保护：取回答的活儿交给 <code>get_reply()</code>，发请求的活儿交给 <code>ask()</code>，主程序只剩三行——问、等、印。</p>
+<pre><code>import requests
+
+BASE_URL = "https://api.helloltq.dpdns.org/v1"
+MODEL = "deepseek-v4.1-flash-1017"
+
+
+def get_reply(data):
+    """从大模型回来的字典里只取正文；取不到就回 None，绝不报错。"""
+    if not isinstance(data, dict):
+        return None
+    choices = data.get("choices") or []
+    if not choices:
+        return None
+    first = choices[0]
+    if not isinstance(first, dict):
+        return None
+    message = first.get("message") or {}
+    content = message.get("content")
+    if not isinstance(content, str):
+        return None
+    content = content.strip()
+    if not content:
+        return None
+    return content
+
+
+def ask(api_key, question):
+    """发一句话，回来只给正文；出问题就把原因印出来，回 None。"""
+    try:
+        r = requests.post(
+            BASE_URL + "/chat/completions",
+            headers={
+                "Authorization": "Bearer " + api_key,
+                "Content-Type": "application/json",
+            },
+            json={
+                "model": MODEL,
+                "messages": [{"role": "user", "content": question}],
+                "max_tokens": 200,
+            },
+            timeout=60,
+        )
+    except requests.exceptions.RequestException as e:
+        print("没连上服务器：", e)
+        return None
+
+    print("状态码：", r.status_code)
+    if r.status_code != 200:
+        print("这次没调通，服务器回的是：")
+        print(r.text)
+        return None
+
+    try:
+        data = r.json()
+    except ValueError:
+        print("服务器回的不是 json，没法拆：")
+        print(r.text)
+        return None
+
+    return get_reply(data)
+
+
+api_key = input("把你的令牌粘贴进来（粘贴后按回车，不会显示在文件里）：").strip()
+question = input("想问大模型什么？直接打一句话：").strip()
+
+reply = ask(api_key, question)
+if reply is None:
+    print("这次没拿到正文，上面已经印了原因，改好再跑一次就行。")
+else:
+    print("大模型回你：")
+    print(reply)</code></pre>
+<p>新东西只有一个：<code>isinstance(data, dict)</code> 就是问一句“<code>data</code> 是不是字典？”——是就继续拆，不是就直接回 <code>None</code>。它和 <code>type()</code> 不一样的地方以后再说，今天只记住它是用来“先验货、再动手”的。</p>
+
+<h2>5 · 一行一行读懂它</h2>
+<p><b><code>get_reply()</code> 是层层设卡：</b>每一层先问“这东西在不在、是不是我要的样子”，不在就立刻回 <code>None</code>，不往下走。<code>data</code> 不是字典 → <code>None</code>；<code>choices</code> 没有或为空 → <code>None</code>；第一项不是字典 → <code>None</code>；<code>content</code> 不是字符串、或是空的 → <code>None</code>。只有一路都通过，才把正文交出去。最后那个 <code>.strip()</code> 是把正文前后多余的空格和换行去掉，回答看起来更干净。</p>
+<p><b><code>ask()</code> 是把“发请求”和“拆回答”分开：</b>发请求那一段只管“连没连上、状态码对不对”；<code>r.json()</code> 那一段只管“回来的东西能不能拆成字典”；拆字典的活儿再交给 <code>get_reply()</code>。哪一步出问题，哪一步自己印原因、回 <code>None</code>，后面的步骤就不用跑了——这就是第 2 天说的“函数把一件事包起来”，今天包的是“问一次模型”这件事。</p>
+<p><b>主程序最后的 <code>if reply is None</code>：</b>这是全程序唯一要你判断的地方。<code>reply</code> 是 <code>None</code>，说明上面某一层已经印过原因了，这里只补一句“改好再跑一次”；不是 <code>None</code>，就是拿到了正文，印出来。注意这里写的是 <code>is None</code>，不是 <code>== None</code>——判断“是不是 <code>None</code>”要用 <code>is</code>，这是 Python 的习惯写法。</p>
+<div class="warn"><b>令牌的规矩不变：</b>还是老三条——不写进文件里，不截图发给别人，万一发出去了就去中转后台删掉重建。今天的代码和昨天一样，令牌只活在运行的那一刻。</div>
+
+<h2>6 · 动手试两种坏情况</h2>
+<p>好代码要拿坏情况试，光跑通一次不算。做下面两组对比：</p>
+<p><b>第一组，正常问一次：</b><code>python parse_reply.py</code>，粘贴令牌，问一句短的，比如“用一句话介绍鲁班”。应该看到状态码 200，然后印出回答。</p>
+<p><b>第二组，故意写错模型名：</b>把文件里的 <code>MODEL</code> 改成一个不存在的名字，比如 <code>"deepseek-不存在的模型"</code>，再跑一次。服务器会回 404，程序应该印出状态码和服务器的回话，最后补一句“这次没拿到正文”，<b>全程不出现红色报错、不崩</b>。试完把 <code>MODEL</code> 改回 <code>deepseek-v4.1-flash-1017</code>，再跑一次确认又能正常回答了。</p>
+<p>这两组跑完，你就亲手验证了今天的核心：同样的程序，好情况给回答，坏情况给人话，两种都不崩。</p>
+<div class="note"><b>用 print() 当探照灯：</b>想看 <code>get_reply()</code> 每一步卡住了哪里，在它每个 <code>return None</code> 之前加一句 <code>print()</code>，比如 <code>print("卡在 choices 为空")</code>，跑一次就知道是哪一层拦住了你。试完记得把这些临时的 <code>print</code> 删掉，或者留着也行——第 2 天的探照灯，本来就是随时插、随时拔的。</div>
+
+<h2>读代码小题，4 道，带答案</h2>
+
+<div class="quiz">
+  <h3>第 1 题</h3>
+  <pre><code># A：data = {"choices": []}
+# B：data = {"choices": [{"message": {"content": "你好"}}]}</code></pre>
+  <p>对 A 和 B，昨天的写法 <code>data["choices"][0]["message"]["content"]</code> 和今天的 <code>get_reply(data)</code> 各会怎样？</p>
+  <div class="reveal">
+    <input type="checkbox" id="q1">
+    <label for="q1">显示答案</label>
+    <div class="answer">对 B 两种写法都行，都能拿到“你好”。对 A，昨天的写法在 <code>[0]</code> 那里就崩了，空列表没有第一项，报 IndexError；今天的 <code>get_reply</code> 在 <code>if not choices</code> 那里就回了 None，不崩。区别就是：直接取值默认“东西一定在”，.get 加判断是先问“东西在不在”。</div>
+  </div>
+</div>
+
+<div class="quiz">
+  <h3>第 2 题</h3>
+  <pre><code>content = ""</code></pre>
+  <p><code>if not content:</code> 和 <code>if content is None:</code>，哪个能挡住这个空字符串？如果 <code>content</code> 是 <code>None</code>，两个判断又各会怎样？</p>
+  <div class="reveal">
+    <input type="checkbox" id="q2">
+    <label for="q2">显示答案</label>
+    <div class="answer"><code>if not content</code> 能挡住空字符串，因为空字符串在 if 里算“假”；<code>if content is None</code> 挡不住，它只认 None，空字符串不是 None。如果 content 是 None，两个判断都能挡住——None 在 if 里也是“假”，同时它就是 None 本身。所以想“一把挡住所有空东西”用 <code>if not x</code>，想“精确只认 None”才用 <code>is None</code>。</div>
+  </div>
+</div>
+
+<div class="quiz">
+  <h3>第 3 题</h3>
+  <pre><code>try:
+    r = requests.post(...)
+    data = r.json()
+except ValueError:
+    print("回的不是 json")</code></pre>
+  <p>如果网断了、连不上服务器，这段代码会怎样？<code>except ValueError</code> 接得住断网吗？应该怎么改？</p>
+  <div class="reveal">
+    <input type="checkbox" id="q3">
+    <label for="q3">显示答案</label>
+    <div class="answer">接不住，会直接崩。断网时 <code>requests.post()</code> 抛的是连接异常，不是 ValueError，except 只接它写的那一种，别的照样崩。正确做法是像今天代码这样分开包：发请求那段用 <code>except requests.exceptions.RequestException</code> 接网络问题，<code>r.json()</code> 那段再用 <code>except ValueError</code> 接“回的不是 json”。一种错一个筐，别混在一个 try 里。</div>
+  </div>
+</div>
+
+<div class="quiz">
+  <h3>第 4 题</h3>
+  <pre><code>reply = ask(api_key, question)
+if reply is None:
+    print("这次没拿到正文，上面已经印了原因，改好再跑一次就行。")</code></pre>
+  <p>为什么主程序不直接写 <code>print(reply)</code>，而要先判断 <code>reply is None</code>？如果 <code>ask()</code> 里不写 <code>return None</code>、让它直接崩掉，Agent 以后调用几十次会怎样？</p>
+  <div class="reveal">
+    <input type="checkbox" id="q4">
+    <label for="q4">显示答案</label>
+    <div class="answer">因为 reply 可能是 None，直接印就只会印出一个 None，你还是不知道这次到底是拿到了空回答，还是中间哪一步出了问题。先判断，就能分开处理：拿到了就印正文，没拿到就告诉人去改。Agent 以后一次任务要调几十次模型，中间崩一次，整个任务就停了；每次都回 None 再继续，坏一次只损失一次调用，后面还能接着跑——今天这点耐心，就是以后 Agent 不怕出错的底子。</div>
+  </div>
+</div>
+
+<h2>自查：今天算过关吗</h2>
+<p>下面每一项，能做到就打个勾（打勾只保存在你自己的浏览器里，不会上传到任何地方）。三项都打勾，今天就算过关。</p>
+<ul class="check" id="checklist">
+  <li><label><input type="checkbox"> 我能说出 .get() 和 [] 取值的区别：一个取不到给 None，一个取不到就崩</label></li>
+  <li><label><input type="checkbox"> 我跑过正常和写错模型名两种情况，两种都没崩，坏的那次印出了人话原因</label></li>
+  <li><label><input type="checkbox"> 我能说出 try / except 是干什么的：先试着跑，跑坏了就接住，不让程序停下来</label></li>
+</ul>
+<p id="progress">已完成 0 / 3</p>
+
+<h2>保底任务（10 分钟，没空就只做这个）</h2>
+<p>只做一件事：<code>cd</code> 进今天的文件夹，<code>python parse_reply.py</code> 跑起来，粘贴令牌，问一句短的，看到状态码 200 和一句回答。再把 <code>MODEL</code> 改成一个错名字跑一次，看到它印出原因、不崩，就把名字改回来。两遍都跑过，今天就算没白学。</p>
+
+<h2>防屎山提醒</h2>
+<p>今天的屎山不在某一行代码里，在“默认一切正常”的习惯里：默认服务器一定回 200、默认字典里一定有这一项、默认列表一定不为空。Agent 的屎山就是这么攒出来的——每处默认都是一颗雷，调用次数一多，总有一颗会炸。今天的规矩就一条：<b>凡是外面来的东西，先验货、再动手</b>，拿不到就认、认了就说一声。这条规矩以后会出现在你每一个 Agent 里。</p>
+
+<h2>明天预告</h2>
+<p>明天是周日，休息日，不发新课，好好歇一天。下周一（11 月 23 日）阶段 1 第 3 课见，继续往“能自己干活的 Agent”走。</p>
+
+<div class="nav">
+  <a href="../../index.html">← 回到首页</a>
+  <span>第 7 天 · 阶段 1</span>
+</div>
+
+<footer>
+  <p>原创学习笔记 · Agent-learn · 2026-11-21</p>
+</footer>
+
+</div>
+<script>
+// 增强功能：统计自查打勾数。JS 被拦截时页面照常可用，只是没有计数。
+(function () {
+  var boxes = document.querySelectorAll('#checklist input[type=checkbox]');
+  var text = document.getElementById('progress');
+  function update() {
+    var n = 0;
+    boxes.forEach(function (b) { if (b.checked) n++; });
+    text.textContent = '已完成 ' + n + ' / ' + boxes.length + (n === boxes.length ? ' · 今天过关！' : '');
+  }
+  boxes.forEach(function (b) { b.addEventListener('change', update); });
+  update();
+})();
+</script>
+</body>
+</html>
